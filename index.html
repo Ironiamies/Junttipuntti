@@ -164,10 +164,10 @@
         }
     }
 
-    /* Lihasryhmäkategoriat alasvetovalikoihin (Leuanveto lisäpainoilla lisätty) */
+    /* Lihasryhmäkategoriat alasvetovalikoihin (Arnold's Press lisätty) */
     const exCategories = {
         squat_dl: ["Takakyykky", "Maastaveto", "Etukyykky", "Maastaveto (Sumo)", "SSB-Kyykky", "Paussikyykky"],
-        press: ["Penkkipunnerrus", "Pystypunnerrus (Tanko)", "Kapea penkki", "Vinopenkki", "Käsipainopenkki", "Pystypunnerrus (KP)"],
+        press: ["Penkkipunnerrus", "Pystypunnerrus (Tanko)", "Kapea penkki", "Vinopenkki", "Käsipainopenkki", "Pystypunnerrus (KP)", "Arnold's Press"],
         pull: ["Kulmasoutu", "Leuanveto", "Leuanveto lisäpainoilla", "Ylätalja", "Alatalja", "T-kulmasoutu", "Rintatuettu soutu"],
         legs_acc: ["Jalkaprässi", "Hack-kyykky", "Pendulum-kyykky", "Suorin jaloin mave (RDL)", "Takareisikoukistus", "Reidenojennus", "Pohkeet"],
         arms_shoulders: ["Ojentajat taljassa", "Ranskalainen punnerrus", "Hauiskääntö tanko", "Hauiskääntö KP", "Vipunostot sivuille", "Takaolkapäät / Facepull"],
@@ -352,7 +352,6 @@
 
                 const availableExs = exCategories[exercise.cat] || ["Liike"];
                 
-                // Määritetään oletusliike, tai otetaan listan ensimmäinen
                 const defaultExName = exercise.def && availableExs.includes(exercise.def) ? exercise.def : availableExs[0];
                 
                 let optionsHtml = '';
