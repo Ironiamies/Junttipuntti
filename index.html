@@ -164,11 +164,11 @@
         }
     }
 
-    /* Lihasryhmäkategoriat alasvetovalikoihin */
+    /* Lihasryhmäkategoriat alasvetovalikoihin (Leuanveto lisäpainoilla lisätty) */
     const exCategories = {
         squat_dl: ["Takakyykky", "Maastaveto", "Etukyykky", "Maastaveto (Sumo)", "SSB-Kyykky", "Paussikyykky"],
         press: ["Penkkipunnerrus", "Pystypunnerrus (Tanko)", "Kapea penkki", "Vinopenkki", "Käsipainopenkki", "Pystypunnerrus (KP)"],
-        pull: ["Kulmasoutu", "Leuanveto", "Ylätalja", "Alatalja", "T-kulmasoutu", "Rintatuettu soutu"],
+        pull: ["Kulmasoutu", "Leuanveto", "Leuanveto lisäpainoilla", "Ylätalja", "Alatalja", "T-kulmasoutu", "Rintatuettu soutu"],
         legs_acc: ["Jalkaprässi", "Hack-kyykky", "Pendulum-kyykky", "Suorin jaloin mave (RDL)", "Takareisikoukistus", "Reidenojennus", "Pohkeet"],
         arms_shoulders: ["Ojentajat taljassa", "Ranskalainen punnerrus", "Hauiskääntö tanko", "Hauiskääntö KP", "Vipunostot sivuille", "Takaolkapäät / Facepull"],
         core: ["Vatsarutistus", "Voimapyörä", "Jalkojen nosto", "Lankku", "Kyljet"],
@@ -286,7 +286,6 @@
 
             if (alertMsg !== "") { alertBox.innerText = alertMsg; alertBox.style.display = 'block'; }
 
-            // 🔥 Lisätty def-arvot, jotka kertovat ohjelmalle mikä otetaan alasvetovalikosta oletuksena!
             const templates = {
                 perus: [
                     { cat: "squat_dl", def: "Takakyykky", sets: 4, reps: "8-10", rpe: 8 },
