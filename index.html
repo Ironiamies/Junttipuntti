@@ -164,7 +164,7 @@
         }
     }
 
-    /* Lihasryhmäkategoriat alasvetovalikoihin (Pendulum lisätty) */
+    /* Lihasryhmäkategoriat alasvetovalikoihin */
     const exCategories = {
         squat_dl: ["Takakyykky", "Maastaveto", "Etukyykky", "Maastaveto (Sumo)", "SSB-Kyykky", "Paussikyykky"],
         press: ["Penkkipunnerrus", "Pystypunnerrus (Tanko)", "Kapea penkki", "Vinopenkki", "Käsipainopenkki", "Pystypunnerrus (KP)"],
@@ -172,7 +172,7 @@
         legs_acc: ["Jalkaprässi", "Hack-kyykky", "Pendulum-kyykky", "Suorin jaloin mave (RDL)", "Takareisikoukistus", "Reidenojennus", "Pohkeet"],
         arms_shoulders: ["Ojentajat taljassa", "Ranskalainen punnerrus", "Hauiskääntö tanko", "Hauiskääntö KP", "Vipunostot sivuille", "Takaolkapäät / Facepull"],
         core: ["Vatsarutistus", "Voimapyörä", "Jalkojen nosto", "Lankku", "Kyljet"],
-        speed: ["Räjähtävä kyykky", "Nopeuspenkki", "Rinnalleveto", "Kuntopallon heitto", "Loikat", "Nopeat leuat"]
+        speed: ["Räjähtävä kyykky", "Nopeuspenkki", "Rinnalleveto", "Kuntopallon heitto", "Loikat", "Räjähtävä punnerrus", "Nopeat leuat"]
     };
 
     function toggleWarmup(btn) {
@@ -286,56 +286,57 @@
 
             if (alertMsg !== "") { alertBox.innerText = alertMsg; alertBox.style.display = 'block'; }
 
+            // 🔥 Lisätty def-arvot, jotka kertovat ohjelmalle mikä otetaan alasvetovalikosta oletuksena!
             const templates = {
                 perus: [
-                    { cat: "squat_dl", sets: 4, reps: "8-10", rpe: 8 },
-                    { cat: "press", sets: 4, reps: "8-12", rpe: 8 },
-                    { cat: "pull", sets: 3, reps: "10-12", rpe: 8.5 },
-                    { cat: "core", sets: 3, reps: "12-15", rpe: 9 },
-                    { cat: "legs_acc", sets: 3, reps: "10-15", rpe: 8.5 },
-                    { cat: "arms_shoulders", sets: 3, reps: "12-15", rpe: 9 },
-                    { cat: "arms_shoulders", sets: 3, reps: "12-15", rpe: 9 },
-                    { cat: "pull", sets: 3, reps: "15-20", rpe: 8.5 }
+                    { cat: "squat_dl", def: "Takakyykky", sets: 4, reps: "8-10", rpe: 8 },
+                    { cat: "press", def: "Penkkipunnerrus", sets: 4, reps: "8-12", rpe: 8 },
+                    { cat: "pull", def: "Kulmasoutu", sets: 3, reps: "10-12", rpe: 8.5 },
+                    { cat: "core", def: "Vatsarutistus", sets: 3, reps: "12-15", rpe: 9 },
+                    { cat: "legs_acc", def: "Jalkaprässi", sets: 3, reps: "10-15", rpe: 8.5 },
+                    { cat: "arms_shoulders", def: "Ojentajat taljassa", sets: 3, reps: "12-15", rpe: 9 },
+                    { cat: "arms_shoulders", def: "Hauiskääntö tanko", sets: 3, reps: "12-15", rpe: 9 },
+                    { cat: "arms_shoulders", def: "Takaolkapäät / Facepull", sets: 3, reps: "15-20", rpe: 8.5 }
                 ],
                 voimanosto: [
-                    { cat: "squat_dl", scheme: [{ sets: 1, reps: "2", rpe: 8, label: "Top Set" }, { sets: 1, reps: "4", rpe: 7, label: "Back-off 1" }, { sets: 1, reps: "6", rpe: 6, label: "Back-off 2" }] },
-                    { cat: "press", scheme: [{ sets: 1, reps: "1", rpe: 8, label: "Top Set" }, { sets: 3, reps: "5", rpe: 7.5, label: "Volyymi" }] },
-                    { cat: "press", sets: 3, reps: "6-8", rpe: 8 },
-                    { cat: "pull", sets: 4, reps: "6-8", rpe: 8.5 },
-                    { cat: "core", sets: 3, reps: "8-10", rpe: 8 },
-                    { cat: "arms_shoulders", sets: 3, reps: "8-12", rpe: 8 },
-                    { cat: "legs_acc", sets: 3, reps: "8-12", rpe: 8 },
-                    { cat: "pull", sets: 3, reps: "10-15", rpe: 8 }
+                    { cat: "squat_dl", def: "Takakyykky", scheme: [{ sets: 1, reps: "2", rpe: 8, label: "Top Set" }, { sets: 1, reps: "4", rpe: 7, label: "Back-off 1" }, { sets: 1, reps: "6", rpe: 6, label: "Back-off 2" }] },
+                    { cat: "press", def: "Penkkipunnerrus", scheme: [{ sets: 1, reps: "1", rpe: 8, label: "Top Set" }, { sets: 3, reps: "5", rpe: 7.5, label: "Volyymi" }] },
+                    { cat: "press", def: "Pystypunnerrus (Tanko)", sets: 3, reps: "6-8", rpe: 8 },
+                    { cat: "pull", def: "Kulmasoutu", sets: 4, reps: "6-8", rpe: 8.5 },
+                    { cat: "core", def: "Voimapyörä", sets: 3, reps: "8-10", rpe: 8 },
+                    { cat: "arms_shoulders", def: "Ranskalainen punnerrus", sets: 3, reps: "8-12", rpe: 8 },
+                    { cat: "legs_acc", def: "Takareisikoukistus", sets: 3, reps: "8-12", rpe: 8 },
+                    { cat: "pull", def: "Ylätalja", sets: 3, reps: "10-15", rpe: 8 }
                 ],
                 maksimi: [
-                    { cat: "squat_dl", sets: 5, reps: "2-4", rpe: 9 },
-                    { cat: "press", sets: 5, reps: "2-4", rpe: 9 },
-                    { cat: "pull", sets: 4, reps: "4-6", rpe: 8.5 },
-                    { cat: "press", sets: 3, reps: "4-6", rpe: 8.5 },
-                    { cat: "core", sets: 3, reps: "6-8", rpe: 8 },
-                    { cat: "arms_shoulders", sets: 3, reps: "6-8", rpe: 8.5 },
-                    { cat: "legs_acc", sets: 3, reps: "6-8", rpe: 8.5 },
-                    { cat: "arms_shoulders", sets: 3, reps: "8-10", rpe: 8 }
+                    { cat: "squat_dl", def: "Maastaveto", sets: 5, reps: "2-4", rpe: 9 },
+                    { cat: "press", def: "Penkkipunnerrus", sets: 5, reps: "2-4", rpe: 9 },
+                    { cat: "pull", def: "Kulmasoutu", sets: 4, reps: "4-6", rpe: 8.5 },
+                    { cat: "press", def: "Kapea penkki", sets: 3, reps: "4-6", rpe: 8.5 },
+                    { cat: "core", def: "Lankku", sets: 3, reps: "6-8", rpe: 8 },
+                    { cat: "arms_shoulders", def: "Ojentajat taljassa", sets: 3, reps: "6-8", rpe: 8.5 },
+                    { cat: "legs_acc", def: "Suorin jaloin mave (RDL)", sets: 3, reps: "6-8", rpe: 8.5 },
+                    { cat: "arms_shoulders", def: "Hauiskääntö KP", sets: 3, reps: "8-10", rpe: 8 }
                 ],
                 vuoro: [
-                    { cat: "press", sets: 4, reps: "8-10", rpe: 8, pair: 1, prefix: "1A. " },
-                    { cat: "pull", sets: 4, reps: "8-10", rpe: 8, pair: 1, prefix: "1B. " },
-                    { cat: "squat_dl", sets: 3, reps: "10-12", rpe: 8, pair: 2, prefix: "2A. " },
-                    { cat: "legs_acc", sets: 3, reps: "10-12", rpe: 8, pair: 2, prefix: "2B. " },
-                    { cat: "press", sets: 3, reps: "10-12", rpe: 8.5, pair: 3, prefix: "3A. " },
-                    { cat: "pull", sets: 3, reps: "10-12", rpe: 8.5, pair: 3, prefix: "3B. " },
-                    { cat: "arms_shoulders", sets: 3, reps: "12-15", rpe: 9, pair: 4, prefix: "4A. " },
-                    { cat: "arms_shoulders", sets: 3, reps: "12-15", rpe: 9, pair: 4, prefix: "4B. " }
+                    { cat: "press", def: "Penkkipunnerrus", sets: 4, reps: "8-10", rpe: 8, pair: 1, prefix: "1A. " },
+                    { cat: "pull", def: "Kulmasoutu", sets: 4, reps: "8-10", rpe: 8, pair: 1, prefix: "1B. " },
+                    { cat: "squat_dl", def: "Takakyykky", sets: 3, reps: "10-12", rpe: 8, pair: 2, prefix: "2A. " },
+                    { cat: "legs_acc", def: "Takareisikoukistus", sets: 3, reps: "10-12", rpe: 8, pair: 2, prefix: "2B. " },
+                    { cat: "press", def: "Pystypunnerrus (KP)", sets: 3, reps: "10-12", rpe: 8.5, pair: 3, prefix: "3A. " },
+                    { cat: "pull", def: "Leuanveto", sets: 3, reps: "10-12", rpe: 8.5, pair: 3, prefix: "3B. " },
+                    { cat: "arms_shoulders", def: "Hauiskääntö KP", sets: 3, reps: "12-15", rpe: 9, pair: 4, prefix: "4A. " },
+                    { cat: "arms_shoulders", def: "Ojentajat taljassa", sets: 3, reps: "12-15", rpe: 9, pair: 4, prefix: "4B. " }
                 ],
                 nopeus: [
-                    { cat: "speed", sets: 6, reps: "2-3", rpe: 6.5 },
-                    { cat: "speed", sets: 6, reps: "3", rpe: 6.5 },
-                    { cat: "speed", sets: 5, reps: "2-3", rpe: 7 },
-                    { cat: "speed", sets: 4, reps: "5-8", rpe: 7.5 },
-                    { cat: "speed", sets: 4, reps: "5", rpe: 7 },
-                    { cat: "speed", sets: 4, reps: "5", rpe: 7 },
-                    { cat: "speed", sets: 3, reps: "5", rpe: 7.5 },
-                    { cat: "core", sets: 3, reps: "10", rpe: 8 }
+                    { cat: "speed", def: "Räjähtävä kyykky", sets: 6, reps: "2-3", rpe: 6.5 },
+                    { cat: "speed", def: "Nopeuspenkki", sets: 6, reps: "3", rpe: 6.5 },
+                    { cat: "speed", def: "Rinnalleveto", sets: 5, reps: "2-3", rpe: 7 },
+                    { cat: "speed", def: "Kuntopallon heitto", sets: 4, reps: "5-8", rpe: 7.5 },
+                    { cat: "speed", def: "Loikat", sets: 4, reps: "5", rpe: 7 },
+                    { cat: "speed", def: "Räjähtävä punnerrus", sets: 4, reps: "5", rpe: 7 },
+                    { cat: "speed", def: "Nopeat leuat", sets: 3, reps: "5", rpe: 7.5 },
+                    { cat: "core", def: "Kyljet", sets: 3, reps: "10", rpe: 8 }
                 ]
             };
 
@@ -351,12 +352,15 @@
                 let displayPrefix = exercise.prefix ? `<span>${exercise.prefix}</span>` : `<span style="margin-right:8px">${index + 1}.</span>`;
 
                 const availableExs = exCategories[exercise.cat] || ["Liike"];
+                
+                // Määritetään oletusliike, tai otetaan listan ensimmäinen
+                const defaultExName = exercise.def && availableExs.includes(exercise.def) ? exercise.def : availableExs[0];
+                
                 let optionsHtml = '';
                 availableExs.forEach(ex => {
-                    optionsHtml += `<option value="${ex}">${ex}</option>`;
+                    let isSelected = (ex === defaultExName) ? 'selected' : '';
+                    optionsHtml += `<option value="${ex}" ${isSelected}>${ex}</option>`;
                 });
-                
-                const defaultExName = availableExs[0];
 
                 let cardHtml = `
                     <div class="exercise-card ${pairClass}" data-exname="${defaultExName}">
