@@ -164,7 +164,6 @@
         }
     }
 
-    /* Lihasryhmäkategoriat alasvetovalikoihin (Arnold's Press lisätty) */
     const exCategories = {
         squat_dl: ["Takakyykky", "Maastaveto", "Etukyykky", "Maastaveto (Sumo)", "SSB-Kyykky", "Paussikyykky"],
         press: ["Penkkipunnerrus", "Pystypunnerrus (Tanko)", "Kapea penkki", "Vinopenkki", "Käsipainopenkki", "Pystypunnerrus (KP)", "Arnold's Press"],
@@ -219,11 +218,13 @@
         const weightValue = container.querySelector('.weight-input').value;
         const rpeValue = container.querySelector('.rpe-input').value;
         
-        safeSetStorage(storageKey, JSON.stringify({ weight: weightValue, rpe: rpeValue }));
-
-        const originalBg = inputElement.style.backgroundColor;
-        inputElement.style.backgroundColor = "#d1fae5"; 
-        setTimeout(() => { inputElement.style.backgroundColor = originalBg; }, 1000);
+        // Tallennetaan vain, jos kentissä on jotain.
+        if (weightValue !== "" || rpeValue !== "") {
+            safeSetStorage(storageKey, JSON.stringify({ weight: weightValue, rpe: rpeValue }));
+            const originalBg = inputElement.style.backgroundColor;
+            inputElement.style.backgroundColor = "#d1fae5"; 
+            setTimeout(() => { inputElement.style.backgroundColor = originalBg; }, 1000);
+        }
     }
 
     function changeExercise(selectEl) {
@@ -240,23 +241,21 @@
             wInput.setAttribute('data-key', storageKey);
             rInput.setAttribute('data-key', storageKey);
 
-            let savedWeight = '', savedRpe = '', prevText = 'Ei dataa';
+            // Tyhjennetään syöttökentät aina liikkeen vaihdon yhteydessä!
+            wInput.value = "";
+            rInput.value = "";
+
+            let prevText = 'Ei dataa';
             const savedDataStr = safeGetStorage(storageKey);
-            
             if (savedDataStr) {
                 try {
                     const savedData = JSON.parse(savedDataStr);
-                    savedWeight = savedData.weight || ''; 
-                    savedRpe = savedData.rpe || '';
-                    if (savedWeight !== '' || savedRpe !== '') {
-                        prevText = `${savedWeight ? savedWeight + ' kg' : '-'} @ ${savedRpe || '-'}`;
+                    if (savedData.weight !== '' || savedData.rpe !== '') {
+                        prevText = `${savedData.weight ? savedData.weight + ' kg' : '-'} @ ${savedData.rpe || '-'}`;
                     }
                 } catch(e) {}
             }
-            
             subset.querySelector('.prev-data').innerText = 'Edellinen: ' + prevText;
-            wInput.value = savedWeight;
-            rInput.value = savedRpe;
         });
     }
 
@@ -277,14 +276,8 @@
             cloudBtn.style.display = 'block';
 
             let volumeMod = 0, rpeMod = 0, alertMsg = "";
-
-            if (daysSince === 0) { alertMsg += "Treenasit eilen. "; volumeMod -= 1; rpeMod -= 1; } 
-            else if (daysSince >= 7) { alertMsg += "Yli viikko edellisestä treenistä. "; rpeMod -= 0.5; }
-
-            if (fatigue >= 8) { alertMsg += "Korkea väsymys (Deload). Vältä failurea."; volumeMod -= 1; rpeMod -= 1.5; } 
-            else if (fatigue >= 6) { alertMsg += "Olet hieman väsynyt. RPE laskettu."; rpeMod -= 0.5; }
-
-            if (alertMsg !== "") { alertBox.innerText = alertMsg; alertBox.style.display = 'block'; }
+            if (daysSince === 0) { volumeMod -= 1; rpeMod -= 1; } 
+            if (fatigue >= 8) { volumeMod -= 1; rpeMod -= 1.5; } 
 
             const templates = {
                 perus: [
@@ -339,25 +332,16 @@
                 ]
             };
 
-            const titles = { perus: "Perusvoima", voimanosto: "Voimanosto (RTS)", maksimi: "Maksimivoima", vuoro: "Vuorosarjat", nopeus: "Nopeusvoima" };
-            document.getElementById('workout-title').innerText = titles[goal] + " (" + exCount + " liikettä)";
-
-            let plan = templates[goal] || templates['perus'];
-            plan = plan.slice(0, exCount);
-
+            let plan = templates[goal].slice(0, exCount);
             plan.forEach((exercise, index) => {
                 let pairClass = exercise.pair ? 'pair-' + exercise.pair : '';
                 let badgeHtml = exercise.pair ? `<span class="superset-badge">Superset ${exercise.pair}</span>` : '';
                 let displayPrefix = exercise.prefix ? `<span>${exercise.prefix}</span>` : `<span style="margin-right:8px">${index + 1}.</span>`;
-
-                const availableExs = exCategories[exercise.cat] || ["Liike"];
-                
-                const defaultExName = exercise.def && availableExs.includes(exercise.def) ? exercise.def : availableExs[0];
-                
+                const availableExs = exCategories[exercise.cat];
+                const defaultExName = exercise.def;
                 let optionsHtml = '';
                 availableExs.forEach(ex => {
-                    let isSelected = (ex === defaultExName) ? 'selected' : '';
-                    optionsHtml += `<option value="${ex}" ${isSelected}>${ex}</option>`;
+                    optionsHtml += `<option value="${ex}" ${ex === defaultExName ? 'selected' : ''}>${ex}</option>`;
                 });
 
                 let cardHtml = `
@@ -365,66 +349,37 @@
                         <div class="ex-header">
                             <div class="ex-name">
                                 ${displayPrefix}
-                                <select class="ex-selector" onchange="changeExercise(this)">
-                                    ${optionsHtml}
-                                </select>
-                                <span class="warmup-btn" onclick="toggleWarmup(this)">🔥</span> 
-                                ${badgeHtml}
+                                <select class="ex-selector" onchange="changeExercise(this)">${optionsHtml}</select>
+                                <span class="warmup-btn" onclick="toggleWarmup(this)">🔥</span>${badgeHtml}
                             </div>
-                        </div>
-                `;
+                        </div>`;
 
-                let schemes = exercise.scheme ? exercise.scheme : [ { sets: exercise.sets, reps: exercise.reps, rpe: exercise.rpe, label: "" } ];
-
+                let schemes = exercise.scheme ? exercise.scheme : [{ sets: exercise.sets, reps: exercise.reps, rpe: exercise.rpe, label: "" }];
                 schemes.forEach((sub, subIdx) => {
-                    let finalSets = sub.sets + volumeMod; if (finalSets < 1) finalSets = 1; 
-                    let finalRPE = sub.rpe + rpeMod; if (finalRPE < 5) finalRPE = 5; if (finalRPE > 10) finalRPE = 10;
-
-                    const storageKey = `gym_hist_${defaultExName}_${subIdx}`; 
-                    let savedWeight = '', savedRpe = '', prevText = 'Ei dataa';
-
+                    const storageKey = `gym_hist_${defaultExName}_${subIdx}`;
+                    let prevText = 'Ei dataa';
                     const savedDataStr = safeGetStorage(storageKey);
                     if (savedDataStr) {
-                        try {
-                            const savedData = JSON.parse(savedDataStr);
-                            savedWeight = savedData.weight || ''; savedRpe = savedData.rpe || '';
-                            if (savedWeight !== '' || savedRpe !== '') {
-                                prevText = `${savedWeight ? savedWeight + ' kg' : '-'} @ ${savedRpe || '-'}`;
-                            }
-                        } catch(e) {}
+                        const sd = JSON.parse(savedDataStr);
+                        if (sd.weight || sd.rpe) prevText = `${sd.weight || '-'} kg @ ${sd.rpe || '-'}`;
                     }
-
-                    let labelHtml = sub.label ? `<span>${sub.label}</span> | ` : '';
-                    let targetText = `${finalSets} x ${sub.reps} @${finalRPE}`;
 
                     cardHtml += `
                         <div class="subset-container">
                             <div class="subset-header">
-                                <div class="subset-target" data-target="${targetText}">${labelHtml}<strong>${finalSets} x ${sub.reps}</strong> <span>@${finalRPE}</span></div>
+                                <div class="subset-target" data-target="${sub.sets + volumeMod} x ${sub.reps} @${sub.rpe + rpeMod}">${sub.label ? '<span>'+sub.label+'</span> | ' : ''}<strong>${sub.sets + volumeMod} x ${sub.reps}</strong> <span>@${sub.rpe + rpeMod}</span></div>
                                 <div class="prev-data">Edellinen: ${prevText}</div>
                             </div>
                             <div class="ex-inputs">
-                                <div class="input-wrapper">
-                                    <label>Toteutunut Kg</label>
-                                    <input type="number" step="0.5" class="data-input weight-input" placeholder="kg" 
-                                           data-key="${storageKey}" value="${savedWeight}" onchange="saveExerciseData(this)">
-                                </div>
-                                <div class="input-wrapper">
-                                    <label>Toteutunut RPE</label>
-                                    <input type="number" step="0.5" class="data-input rpe-input" placeholder="RPE" 
-                                           data-key="${storageKey}" value="${savedRpe}" onchange="saveExerciseData(this)">
-                                </div>
+                                <div class="input-wrapper"><label>Kg</label><input type="number" step="0.5" class="data-input weight-input" placeholder="-" data-key="${storageKey}" value="" onchange="saveExerciseData(this)"></div>
+                                <div class="input-wrapper"><label>RPE</label><input type="number" step="0.5" class="data-input rpe-input" placeholder="-" data-key="${storageKey}" value="" onchange="saveExerciseData(this)"></div>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                 });
-
                 cardHtml += `</div>`;
                 listContainer.innerHTML += cardHtml;
             });
-        } catch (error) {
-            alert("Virhe ohjelman luonnissa: " + error.message);
-        }
+        } catch (e) { alert(e.message); }
     }
 
     const sheetsURL = "https://script.google.com/macros/s/AKfycbxJcBuviA0q1ERozPtaa7I03lVxPt1egGjv71PGqlOA83KWA7ez_KK0kdBVxhQBfDX5/exec"; 
@@ -432,54 +387,23 @@
     function saveToGoogleSheets() {
         const cards = document.querySelectorAll('.exercise-card');
         let workoutData = [];
-
         cards.forEach(card => {
             const exName = card.getAttribute('data-exname');
-            const subsets = card.querySelectorAll('.subset-container');
-            
-            subsets.forEach(subset => {
-                const targetText = subset.querySelector('.subset-target').getAttribute('data-target');
-                const weight = subset.querySelector('.weight-input').value;
-                const rpe = subset.querySelector('.rpe-input').value;
-
-                if(weight !== "" || rpe !== "") {
-                    workoutData.push({
-                        exercise: exName,
-                        target: targetText,
-                        weight: weight || "-",
-                        rpe: rpe || "-"
-                    });
+            card.querySelectorAll('.subset-container').forEach(subset => {
+                const w = subset.querySelector('.weight-input').value;
+                const r = subset.querySelector('.rpe-input').value;
+                if (w !== "" || r !== "") {
+                    workoutData.push({ exercise: exName, target: subset.querySelector('.subset-target').getAttribute('data-target'), weight: w || "-", rpe: r || "-" });
                 }
             });
         });
 
-        if(workoutData.length === 0) {
-            alert("Kirjaa ainakin yhdet painot ennen tallennusta!");
-            return;
-        }
-
+        if(workoutData.length === 0) { alert("Kirjaa tulokset!"); return; }
         const btn = document.getElementById('save-cloud-btn');
-        btn.innerText = "⏳ Lähetetään pilveen...";
-        btn.disabled = true;
-
-        fetch(sheetsURL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(workoutData)
-        }).then(() => {
-            btn.innerText = "✅ Treeni tallennettu Sheetsiin!";
-            setTimeout(() => {
-                btn.innerText = "☁️ Tallenna treeni Google Sheetsiin";
-                btn.disabled = false;
-            }, 3000);
-        }).catch(err => {
-            alert("Virhe yhteydessä Googleen.");
-            btn.innerText = "☁️ Tallenna treeni Google Sheetsiin";
-            btn.disabled = false;
-        });
+        btn.innerText = "⏳..."; btn.disabled = true;
+        fetch(sheetsURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(workoutData) })
+        .then(() => { btn.innerText = "✅"; setTimeout(() => { btn.innerText = "☁️ Tallenna"; btn.disabled = false; }, 2000); });
     }
-
     window.onload = calculateRPE;
 </script>
 </body>
