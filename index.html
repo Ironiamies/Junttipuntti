@@ -168,7 +168,7 @@
         squat_dl: ["Takakyykky", "Maastaveto", "Etukyykky", "Maastaveto (Sumo)", "SSB-Kyykky", "Paussikyykky"],
         press: ["Penkkipunnerrus", "Pystypunnerrus (Tanko)", "Kapea penkki", "Vinopenkki", "Käsipainopenkki", "Pystypunnerrus (KP)", "Arnold's Press"],
         pull: ["Kulmasoutu", "Leuanveto", "Leuanveto lisäpainoilla", "Ylätalja", "Alatalja", "T-kulmasoutu", "Rintatuettu soutu"],
-        legs_acc: ["Jalkaprässi", "Hack-kyykky", "Pendulum-kyykky", "Suorin jaloin mave (RDL)", "Takareisikoukistus", "Reidenojennus", "Pohkeet"],
+        legs_acc: ["Jalkaprässi", "Hack-kyykky", "Pendulum-kyykky", "Bulgarialainen askelkyykky", "Suorin jaloin mave (RDL)", "Takareisikoukistus", "Reidenojennus", "Pohkeet"],
         arms_shoulders: ["Ojentajat taljassa", "Ranskalainen punnerrus", "Hauiskääntö tanko", "Hauiskääntö KP", "Vipunostot sivuille", "Takaolkapäät / Facepull"],
         core: ["Vatsarutistus", "Voimapyörä", "Jalkojen nosto", "Lankku", "Kyljet"],
         speed: ["Räjähtävä kyykky", "Nopeuspenkki", "Rinnalleveto", "Kuntopallon heitto", "Loikat", "Räjähtävä punnerrus", "Nopeat leuat"]
@@ -196,7 +196,6 @@
         }
     }
 
-    // Tallentaa yksittäisen rivin local muistiin
     function saveExerciseData(inputElement) {
         const storageKey = inputElement.getAttribute('data-key');
         const container = inputElement.closest('.ex-inputs');
@@ -242,8 +241,26 @@
         let rpeMod = (daysSince === 0) ? -1 : (fatigue >= 8 ? -1.5 : (fatigue >= 6 ? -0.5 : 0));
 
         const templates = {
-            perus: [{ cat: "squat_dl", def: "Takakyykky", sets: 4, reps: "8-10", rpe: 8 }, { cat: "press", def: "Penkkipunnerrus", sets: 4, reps: "8-12", rpe: 8 }, { cat: "pull", def: "Kulmasoutu", sets: 3, reps: "10-12", rpe: 8.5 }, { cat: "core", def: "Vatsarutistus", sets: 3, reps: "12-15", rpe: 9 }, { cat: "legs_acc", def: "Jalkaprässi", sets: 3, reps: "10-15", rpe: 8.5 }, { cat: "arms_shoulders", def: "Ojentajat taljassa", sets: 3, reps: "12-15", rpe: 9 }, { cat: "arms_shoulders", def: "Hauiskääntö tanko", sets: 3, reps: "12-15", rpe: 9 }],
-            voimanosto: [{ cat: "squat_dl", def: "Takakyykky", scheme: [{ sets: 1, reps: "2", rpe: 8, label: "Top Set" }, { sets: 1, reps: "4", rpe: 7, label: "Back-off 1" }, { sets: 1, reps: "6", rpe: 6, label: "Back-off 2" }] }, { cat: "press", def: "Penkkipunnerrus", scheme: [{ sets: 1, reps: "1", rpe: 8, label: "Top Set" }, { sets: 3, reps: "5", rpe: 7.5, label: "Volyymi" }] }, { cat: "press", def: "Pystypunnerrus (Tanko)", sets: 3, reps: "6-8", rpe: 8 }, { cat: "pull", def: "Kulmasoutu", sets: 4, reps: "6-8", rpe: 8.5 }, { cat: "core", def: "Voimapyörä", sets: 3, reps: "8-10", rpe: 8 }],
+            perus: [
+                { cat: "squat_dl", def: "Takakyykky", sets: 4, reps: "8-10", rpe: 8 }, 
+                { cat: "press", def: "Penkkipunnerrus", sets: 4, reps: "8-12", rpe: 8 }, 
+                { cat: "pull", def: "Kulmasoutu", sets: 3, reps: "10-12", rpe: 8.5 }, 
+                { cat: "core", def: "Vatsarutistus", sets: 3, reps: "12-15", rpe: 9 }, 
+                { cat: "legs_acc", def: "Jalkaprässi", sets: 3, reps: "10-15", rpe: 8.5 }, 
+                { cat: "arms_shoulders", def: "Ojentajat taljassa", sets: 3, reps: "12-15", rpe: 9 }, 
+                { cat: "arms_shoulders", def: "Hauiskääntö tanko", sets: 3, reps: "12-15", rpe: 9 }
+            ],
+            // 🔥 Voimanosto päivitetty! 3 ekaa on ydinliikkeet, 4. liike pakotettu Bulgarialainen askelkyykky.
+            voimanosto: [
+                { cat: "squat_dl", def: "Takakyykky", scheme: [{ sets: 1, reps: "2", rpe: 8, label: "Top Set" }, { sets: 1, reps: "4", rpe: 7, label: "Back-off 1" }, { sets: 1, reps: "6", rpe: 6, label: "Back-off 2" }] }, 
+                { cat: "press", def: "Penkkipunnerrus", scheme: [{ sets: 1, reps: "1", rpe: 8, label: "Top Set" }, { sets: 3, reps: "5", rpe: 7.5, label: "Volyymi" }] }, 
+                { cat: "pull", def: "Kulmasoutu", sets: 4, reps: "6-8", rpe: 8.5 }, 
+                { cat: "legs_acc", def: "Bulgarialainen askelkyykky", sets: 3, reps: "8-10", rpe: 8 },
+                { cat: "press", def: "Pystypunnerrus (Tanko)", sets: 3, reps: "6-8", rpe: 8 },
+                { cat: "core", def: "Voimapyörä", sets: 3, reps: "8-10", rpe: 8 },
+                { cat: "arms_shoulders", def: "Ranskalainen punnerrus", sets: 3, reps: "8-12", rpe: 8 },
+                { cat: "pull", def: "Ylätalja", sets: 3, reps: "10-15", rpe: 8 }
+            ],
             maksimi: [{ cat: "squat_dl", def: "Maastaveto", sets: 5, reps: "2-4", rpe: 9 }, { cat: "press", def: "Penkkipunnerrus", sets: 5, reps: "2-4", rpe: 9 }, { cat: "pull", def: "Kulmasoutu", sets: 4, reps: "4-6", rpe: 8.5 }],
             vuoro: [{ cat: "press", def: "Penkkipunnerrus", sets: 4, reps: "8-10", rpe: 8, pair: 1, prefix: "1A. " }, { cat: "pull", def: "Kulmasoutu", sets: 4, reps: "8-10", rpe: 8, pair: 1, prefix: "1B. " }],
             nopeus: [{ cat: "speed", def: "Räjähtävä kyykky", sets: 6, reps: "2-3", rpe: 6.5 }]
@@ -297,9 +314,7 @@
                 const storageKey = subset.querySelector('.weight-input').getAttribute('data-key');
 
                 if (w !== "" || r !== "") {
-                    // 🔥 UUTTA: Tallennetaan pakotetusti paikalliseen muistiin samalla kun tallennetaan pilveen
                     safeSetStorage(storageKey, JSON.stringify({ weight: w, rpe: r }));
-                    
                     workoutData.push({
                         exercise: exName,
                         target: subset.querySelector('.subset-target').getAttribute('data-target'),
