@@ -177,53 +177,33 @@
     function toggleWarmup(btn) {
         const card = btn.closest('.exercise-card');
         let warmupBox = card.querySelector('.warmup-box');
-        
         if (!warmupBox) {
             warmupBox = document.createElement('div');
             warmupBox.className = 'warmup-box';
             card.querySelector('.ex-header').insertAdjacentElement('afterend', warmupBox);
         }
-
+        warmupBox.style.display = (warmupBox.style.display === 'block') ? 'none' : 'block';
         if (warmupBox.style.display === 'block') {
-            warmupBox.style.display = 'none';
-            return;
+            let target = parseFloat(document.getElementById('want-weight-result').innerText) || 100;
+            const round = (w) => Math.round(w / 2.5) * 2.5;
+            let html = `<div class="warmup-title">Lähestymissarjat (Tavoite: ${target}kg) <span onclick="this.parentElement.parentElement.style.display='none'" style="cursor:pointer">✖</span></div>`;
+            const steps = [{ p: 0, r: "10-15", label: "Tanko", fixed: 20 }, { p: 0.5, r: "8", label: "50%" }, { p: 0.7, r: "5", label: "70%" }, { p: 0.85, r: "3", label: "85%" }, { p: 0.95, r: "1", label: "Tuntuma" }];
+            steps.forEach(s => {
+                let w = s.fixed ? s.fixed : round(target * s.p);
+                html += `<div class="warmup-step"><span>${s.label}</span> <span><strong>${w} kg</strong> x ${s.r}</span></div>`;
+            });
+            warmupBox.innerHTML = html;
         }
-
-        let target = parseFloat(document.getElementById('want-weight-result').innerText) || 100;
-        const round = (w) => Math.round(w / 2.5) * 2.5;
-        let html = `<div class="warmup-title">Lähestymissarjat (Tavoite: ${target}kg) <span onclick="this.parentElement.parentElement.style.display='none'" style="cursor:pointer">✖</span></div>`;
-        
-        const steps = [
-            { p: 0, r: "10-15", label: "Pelkkä tanko", fixed: 20 },
-            { p: 0.50, r: "8", label: "50%" },
-            { p: 0.70, r: "5", label: "70%" },
-            { p: 0.85, r: "3", label: "85%" },
-            { p: 0.95, r: "1", label: "Tuntuma" }
-        ];
-
-        steps.forEach(s => {
-            let w = s.fixed ? s.fixed : round(target * s.p);
-            if (w < 20) w = 20; 
-            html += `<div class="warmup-step"><span>${s.label}</span> <span><strong>${w} kg</strong> x ${s.r}</span></div>`;
-        });
-
-        warmupBox.innerHTML = html;
-        warmupBox.style.display = 'block';
     }
 
+    // Tallentaa yksittäisen rivin local muistiin
     function saveExerciseData(inputElement) {
         const storageKey = inputElement.getAttribute('data-key');
         const container = inputElement.closest('.ex-inputs');
-        
-        const weightValue = container.querySelector('.weight-input').value;
-        const rpeValue = container.querySelector('.rpe-input').value;
-        
-        // Tallennetaan vain, jos kentissä on jotain.
-        if (weightValue !== "" || rpeValue !== "") {
-            safeSetStorage(storageKey, JSON.stringify({ weight: weightValue, rpe: rpeValue }));
-            const originalBg = inputElement.style.backgroundColor;
-            inputElement.style.backgroundColor = "#d1fae5"; 
-            setTimeout(() => { inputElement.style.backgroundColor = originalBg; }, 1000);
+        const w = container.querySelector('.weight-input').value;
+        const r = container.querySelector('.rpe-input').value;
+        if (w !== "" || r !== "") {
+            safeSetStorage(storageKey, JSON.stringify({ weight: w, rpe: r }));
         }
     }
 
@@ -231,178 +211,115 @@
         const card = selectEl.closest('.exercise-card');
         const newExName = selectEl.value;
         card.setAttribute('data-exname', newExName); 
-
-        const subsets = card.querySelectorAll('.subset-container');
-        subsets.forEach((subset, subIdx) => {
+        card.querySelectorAll('.subset-container').forEach((subset, subIdx) => {
             const storageKey = `gym_hist_${newExName}_${subIdx}`;
-            
             const wInput = subset.querySelector('.weight-input');
             const rInput = subset.querySelector('.rpe-input');
             wInput.setAttribute('data-key', storageKey);
             rInput.setAttribute('data-key', storageKey);
-
-            // Tyhjennetään syöttökentät aina liikkeen vaihdon yhteydessä!
-            wInput.value = "";
-            rInput.value = "";
-
+            wInput.value = ""; rInput.value = "";
             let prevText = 'Ei dataa';
             const savedDataStr = safeGetStorage(storageKey);
             if (savedDataStr) {
-                try {
-                    const savedData = JSON.parse(savedDataStr);
-                    if (savedData.weight !== '' || savedData.rpe !== '') {
-                        prevText = `${savedData.weight ? savedData.weight + ' kg' : '-'} @ ${savedData.rpe || '-'}`;
-                    }
-                } catch(e) {}
+                const sd = JSON.parse(savedDataStr);
+                if (sd.weight || sd.rpe) prevText = `${sd.weight || '-'} kg @ ${sd.rpe || '-'}`;
             }
             subset.querySelector('.prev-data').innerText = 'Edellinen: ' + prevText;
         });
     }
 
     function generateProgram() {
-        try {
-            const goal = document.getElementById('train-goal').value;
-            const exCount = parseInt(document.getElementById('exercise-count').value) || 5;
-            const daysSince = parseInt(document.getElementById('days-since').value) || 2;
-            const fatigue = parseInt(document.getElementById('fatigue-level').value) || 4;
-            
-            const listContainer = document.getElementById('workout-list');
-            const alertBox = document.getElementById('workout-alert');
-            const cloudBtn = document.getElementById('save-cloud-btn');
-            
-            document.getElementById('workout-container').style.display = 'block';
-            listContainer.innerHTML = '';
-            alertBox.style.display = 'none';
-            cloudBtn.style.display = 'block';
+        const goal = document.getElementById('train-goal').value;
+        const exCount = parseInt(document.getElementById('exercise-count').value) || 5;
+        const daysSince = parseInt(document.getElementById('days-since').value) || 2;
+        const fatigue = parseInt(document.getElementById('fatigue-level').value) || 4;
+        const listContainer = document.getElementById('workout-list');
+        document.getElementById('workout-container').style.display = 'block';
+        listContainer.innerHTML = '';
+        document.getElementById('save-cloud-btn').style.display = 'block';
 
-            let volumeMod = 0, rpeMod = 0, alertMsg = "";
-            if (daysSince === 0) { volumeMod -= 1; rpeMod -= 1; } 
-            if (fatigue >= 8) { volumeMod -= 1; rpeMod -= 1.5; } 
+        let volMod = (daysSince === 0 || fatigue >= 8) ? -1 : 0;
+        let rpeMod = (daysSince === 0) ? -1 : (fatigue >= 8 ? -1.5 : (fatigue >= 6 ? -0.5 : 0));
 
-            const templates = {
-                perus: [
-                    { cat: "squat_dl", def: "Takakyykky", sets: 4, reps: "8-10", rpe: 8 },
-                    { cat: "press", def: "Penkkipunnerrus", sets: 4, reps: "8-12", rpe: 8 },
-                    { cat: "pull", def: "Kulmasoutu", sets: 3, reps: "10-12", rpe: 8.5 },
-                    { cat: "core", def: "Vatsarutistus", sets: 3, reps: "12-15", rpe: 9 },
-                    { cat: "legs_acc", def: "Jalkaprässi", sets: 3, reps: "10-15", rpe: 8.5 },
-                    { cat: "arms_shoulders", def: "Ojentajat taljassa", sets: 3, reps: "12-15", rpe: 9 },
-                    { cat: "arms_shoulders", def: "Hauiskääntö tanko", sets: 3, reps: "12-15", rpe: 9 },
-                    { cat: "arms_shoulders", def: "Takaolkapäät / Facepull", sets: 3, reps: "15-20", rpe: 8.5 }
-                ],
-                voimanosto: [
-                    { cat: "squat_dl", def: "Takakyykky", scheme: [{ sets: 1, reps: "2", rpe: 8, label: "Top Set" }, { sets: 1, reps: "4", rpe: 7, label: "Back-off 1" }, { sets: 1, reps: "6", rpe: 6, label: "Back-off 2" }] },
-                    { cat: "press", def: "Penkkipunnerrus", scheme: [{ sets: 1, reps: "1", rpe: 8, label: "Top Set" }, { sets: 3, reps: "5", rpe: 7.5, label: "Volyymi" }] },
-                    { cat: "press", def: "Pystypunnerrus (Tanko)", sets: 3, reps: "6-8", rpe: 8 },
-                    { cat: "pull", def: "Kulmasoutu", sets: 4, reps: "6-8", rpe: 8.5 },
-                    { cat: "core", def: "Voimapyörä", sets: 3, reps: "8-10", rpe: 8 },
-                    { cat: "arms_shoulders", def: "Ranskalainen punnerrus", sets: 3, reps: "8-12", rpe: 8 },
-                    { cat: "legs_acc", def: "Takareisikoukistus", sets: 3, reps: "8-12", rpe: 8 },
-                    { cat: "pull", def: "Ylätalja", sets: 3, reps: "10-15", rpe: 8 }
-                ],
-                maksimi: [
-                    { cat: "squat_dl", def: "Maastaveto", sets: 5, reps: "2-4", rpe: 9 },
-                    { cat: "press", def: "Penkkipunnerrus", sets: 5, reps: "2-4", rpe: 9 },
-                    { cat: "pull", def: "Kulmasoutu", sets: 4, reps: "4-6", rpe: 8.5 },
-                    { cat: "press", def: "Kapea penkki", sets: 3, reps: "4-6", rpe: 8.5 },
-                    { cat: "core", def: "Lankku", sets: 3, reps: "6-8", rpe: 8 },
-                    { cat: "arms_shoulders", def: "Ojentajat taljassa", sets: 3, reps: "6-8", rpe: 8.5 },
-                    { cat: "legs_acc", def: "Suorin jaloin mave (RDL)", sets: 3, reps: "6-8", rpe: 8.5 },
-                    { cat: "arms_shoulders", def: "Hauiskääntö KP", sets: 3, reps: "8-10", rpe: 8 }
-                ],
-                vuoro: [
-                    { cat: "press", def: "Penkkipunnerrus", sets: 4, reps: "8-10", rpe: 8, pair: 1, prefix: "1A. " },
-                    { cat: "pull", def: "Kulmasoutu", sets: 4, reps: "8-10", rpe: 8, pair: 1, prefix: "1B. " },
-                    { cat: "squat_dl", def: "Takakyykky", sets: 3, reps: "10-12", rpe: 8, pair: 2, prefix: "2A. " },
-                    { cat: "legs_acc", def: "Takareisikoukistus", sets: 3, reps: "10-12", rpe: 8, pair: 2, prefix: "2B. " },
-                    { cat: "press", def: "Pystypunnerrus (KP)", sets: 3, reps: "10-12", rpe: 8.5, pair: 3, prefix: "3A. " },
-                    { cat: "pull", def: "Leuanveto", sets: 3, reps: "10-12", rpe: 8.5, pair: 3, prefix: "3B. " },
-                    { cat: "arms_shoulders", def: "Hauiskääntö KP", sets: 3, reps: "12-15", rpe: 9, pair: 4, prefix: "4A. " },
-                    { cat: "arms_shoulders", def: "Ojentajat taljassa", sets: 3, reps: "12-15", rpe: 9, pair: 4, prefix: "4B. " }
-                ],
-                nopeus: [
-                    { cat: "speed", def: "Räjähtävä kyykky", sets: 6, reps: "2-3", rpe: 6.5 },
-                    { cat: "speed", def: "Nopeuspenkki", sets: 6, reps: "3", rpe: 6.5 },
-                    { cat: "speed", def: "Rinnalleveto", sets: 5, reps: "2-3", rpe: 7 },
-                    { cat: "speed", def: "Kuntopallon heitto", sets: 4, reps: "5-8", rpe: 7.5 },
-                    { cat: "speed", def: "Loikat", sets: 4, reps: "5", rpe: 7 },
-                    { cat: "speed", def: "Räjähtävä punnerrus", sets: 4, reps: "5", rpe: 7 },
-                    { cat: "speed", def: "Nopeat leuat", sets: 3, reps: "5", rpe: 7.5 },
-                    { cat: "core", def: "Kyljet", sets: 3, reps: "10", rpe: 8 }
-                ]
-            };
+        const templates = {
+            perus: [{ cat: "squat_dl", def: "Takakyykky", sets: 4, reps: "8-10", rpe: 8 }, { cat: "press", def: "Penkkipunnerrus", sets: 4, reps: "8-12", rpe: 8 }, { cat: "pull", def: "Kulmasoutu", sets: 3, reps: "10-12", rpe: 8.5 }, { cat: "core", def: "Vatsarutistus", sets: 3, reps: "12-15", rpe: 9 }, { cat: "legs_acc", def: "Jalkaprässi", sets: 3, reps: "10-15", rpe: 8.5 }, { cat: "arms_shoulders", def: "Ojentajat taljassa", sets: 3, reps: "12-15", rpe: 9 }, { cat: "arms_shoulders", def: "Hauiskääntö tanko", sets: 3, reps: "12-15", rpe: 9 }],
+            voimanosto: [{ cat: "squat_dl", def: "Takakyykky", scheme: [{ sets: 1, reps: "2", rpe: 8, label: "Top Set" }, { sets: 1, reps: "4", rpe: 7, label: "Back-off 1" }, { sets: 1, reps: "6", rpe: 6, label: "Back-off 2" }] }, { cat: "press", def: "Penkkipunnerrus", scheme: [{ sets: 1, reps: "1", rpe: 8, label: "Top Set" }, { sets: 3, reps: "5", rpe: 7.5, label: "Volyymi" }] }, { cat: "press", def: "Pystypunnerrus (Tanko)", sets: 3, reps: "6-8", rpe: 8 }, { cat: "pull", def: "Kulmasoutu", sets: 4, reps: "6-8", rpe: 8.5 }, { cat: "core", def: "Voimapyörä", sets: 3, reps: "8-10", rpe: 8 }],
+            maksimi: [{ cat: "squat_dl", def: "Maastaveto", sets: 5, reps: "2-4", rpe: 9 }, { cat: "press", def: "Penkkipunnerrus", sets: 5, reps: "2-4", rpe: 9 }, { cat: "pull", def: "Kulmasoutu", sets: 4, reps: "4-6", rpe: 8.5 }],
+            vuoro: [{ cat: "press", def: "Penkkipunnerrus", sets: 4, reps: "8-10", rpe: 8, pair: 1, prefix: "1A. " }, { cat: "pull", def: "Kulmasoutu", sets: 4, reps: "8-10", rpe: 8, pair: 1, prefix: "1B. " }],
+            nopeus: [{ cat: "speed", def: "Räjähtävä kyykky", sets: 6, reps: "2-3", rpe: 6.5 }]
+        };
 
-            let plan = templates[goal].slice(0, exCount);
-            plan.forEach((exercise, index) => {
-                let pairClass = exercise.pair ? 'pair-' + exercise.pair : '';
-                let badgeHtml = exercise.pair ? `<span class="superset-badge">Superset ${exercise.pair}</span>` : '';
-                let displayPrefix = exercise.prefix ? `<span>${exercise.prefix}</span>` : `<span style="margin-right:8px">${index + 1}.</span>`;
-                const availableExs = exCategories[exercise.cat];
-                const defaultExName = exercise.def;
-                let optionsHtml = '';
-                availableExs.forEach(ex => {
-                    optionsHtml += `<option value="${ex}" ${ex === defaultExName ? 'selected' : ''}>${ex}</option>`;
-                });
+        let plan = (templates[goal] || templates.perus).slice(0, exCount);
+        plan.forEach((exercise, idx) => {
+            const defEx = exercise.def;
+            let cardHtml = `<div class="exercise-card ${exercise.pair ? 'pair-'+exercise.pair : ''}" data-exname="${defEx}">
+                <div class="ex-header"><div class="ex-name">
+                    <span>${exercise.prefix || (idx+1)+'. '}</span>
+                    <select class="ex-selector" onchange="changeExercise(this)">
+                        ${exCategories[exercise.cat].map(ex => `<option value="${ex}" ${ex===defEx?'selected':''}>${ex}</option>`).join('')}
+                    </select>
+                    <span class="warmup-btn" onclick="toggleWarmup(this)">🔥</span>
+                </div></div>`;
 
-                let cardHtml = `
-                    <div class="exercise-card ${pairClass}" data-exname="${defaultExName}">
-                        <div class="ex-header">
-                            <div class="ex-name">
-                                ${displayPrefix}
-                                <select class="ex-selector" onchange="changeExercise(this)">${optionsHtml}</select>
-                                <span class="warmup-btn" onclick="toggleWarmup(this)">🔥</span>${badgeHtml}
-                            </div>
-                        </div>`;
+            let schemes = exercise.scheme || [{ sets: exercise.sets, reps: exercise.reps, rpe: exercise.rpe }];
+            schemes.forEach((sub, sIdx) => {
+                const storageKey = `gym_hist_${defEx}_${sIdx}`;
+                let prevText = 'Ei dataa';
+                const sdStr = safeGetStorage(storageKey);
+                if (sdStr) { const sd = JSON.parse(sdStr); if(sd.weight) prevText = `${sd.weight} kg @ ${sd.rpe}`; }
 
-                let schemes = exercise.scheme ? exercise.scheme : [{ sets: exercise.sets, reps: exercise.reps, rpe: exercise.rpe, label: "" }];
-                schemes.forEach((sub, subIdx) => {
-                    const storageKey = `gym_hist_${defaultExName}_${subIdx}`;
-                    let prevText = 'Ei dataa';
-                    const savedDataStr = safeGetStorage(storageKey);
-                    if (savedDataStr) {
-                        const sd = JSON.parse(savedDataStr);
-                        if (sd.weight || sd.rpe) prevText = `${sd.weight || '-'} kg @ ${sd.rpe || '-'}`;
-                    }
-
-                    cardHtml += `
-                        <div class="subset-container">
-                            <div class="subset-header">
-                                <div class="subset-target" data-target="${sub.sets + volumeMod} x ${sub.reps} @${sub.rpe + rpeMod}">${sub.label ? '<span>'+sub.label+'</span> | ' : ''}<strong>${sub.sets + volumeMod} x ${sub.reps}</strong> <span>@${sub.rpe + rpeMod}</span></div>
-                                <div class="prev-data">Edellinen: ${prevText}</div>
-                            </div>
-                            <div class="ex-inputs">
-                                <div class="input-wrapper"><label>Kg</label><input type="number" step="0.5" class="data-input weight-input" placeholder="-" data-key="${storageKey}" value="" onchange="saveExerciseData(this)"></div>
-                                <div class="input-wrapper"><label>RPE</label><input type="number" step="0.5" class="data-input rpe-input" placeholder="-" data-key="${storageKey}" value="" onchange="saveExerciseData(this)"></div>
-                            </div>
-                        </div>`;
-                });
-                cardHtml += `</div>`;
-                listContainer.innerHTML += cardHtml;
+                cardHtml += `<div class="subset-container">
+                    <div class="subset-header">
+                        <div class="subset-target" data-target="${sub.sets+volMod}x${sub.reps}@${sub.rpe+rpeMod}">${sub.label?sub.label+' | ':''}<strong>${sub.sets+volMod}x${sub.reps}</strong> <span>@${sub.rpe+rpeMod}</span></div>
+                        <div class="prev-data">Edellinen: ${prevText}</div>
+                    </div>
+                    <div class="ex-inputs">
+                        <div class="input-wrapper"><label>Kg</label><input type="number" step="0.5" class="data-input weight-input" data-key="${storageKey}" onchange="saveExerciseData(this)"></div>
+                        <div class="input-wrapper"><label>RPE</label><input type="number" step="0.5" class="data-input rpe-input" data-key="${storageKey}" onchange="saveExerciseData(this)"></div>
+                    </div>
+                </div>`;
             });
-        } catch (e) { alert(e.message); }
+            listContainer.innerHTML += cardHtml + `</div>`;
+        });
     }
 
     const sheetsURL = "https://script.google.com/macros/s/AKfycbxJcBuviA0q1ERozPtaa7I03lVxPt1egGjv71PGqlOA83KWA7ez_KK0kdBVxhQBfDX5/exec"; 
-    
+
     function saveToGoogleSheets() {
         const cards = document.querySelectorAll('.exercise-card');
         let workoutData = [];
+
         cards.forEach(card => {
             const exName = card.getAttribute('data-exname');
             card.querySelectorAll('.subset-container').forEach(subset => {
                 const w = subset.querySelector('.weight-input').value;
                 const r = subset.querySelector('.rpe-input').value;
+                const storageKey = subset.querySelector('.weight-input').getAttribute('data-key');
+
                 if (w !== "" || r !== "") {
-                    workoutData.push({ exercise: exName, target: subset.querySelector('.subset-target').getAttribute('data-target'), weight: w || "-", rpe: r || "-" });
+                    // 🔥 UUTTA: Tallennetaan pakotetusti paikalliseen muistiin samalla kun tallennetaan pilveen
+                    safeSetStorage(storageKey, JSON.stringify({ weight: w, rpe: r }));
+                    
+                    workoutData.push({
+                        exercise: exName,
+                        target: subset.querySelector('.subset-target').getAttribute('data-target'),
+                        weight: w || "-",
+                        rpe: r || "-"
+                    });
                 }
             });
         });
 
-        if(workoutData.length === 0) { alert("Kirjaa tulokset!"); return; }
+        if(workoutData.length === 0) { alert("Kirjaa tulokset ensin!"); return; }
+
         const btn = document.getElementById('save-cloud-btn');
-        btn.innerText = "⏳..."; btn.disabled = true;
+        btn.innerText = "⏳ Tallennetaan..."; btn.disabled = true;
+
         fetch(sheetsURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(workoutData) })
-        .then(() => { btn.innerText = "✅"; setTimeout(() => { btn.innerText = "☁️ Tallenna"; btn.disabled = false; }, 2000); });
+        .then(() => {
+            btn.innerText = "✅ Valmis!";
+            setTimeout(() => { btn.innerText = "☁️ Tallenna Sheetsiin"; btn.disabled = false; }, 2000);
+        }).catch(() => { alert("Virhe!"); btn.disabled = false; });
     }
     window.onload = calculateRPE;
 </script>
