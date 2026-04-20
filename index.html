@@ -27,7 +27,7 @@
         .records-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
         .record-item { background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.2); }
         .record-val { font-size: 1.5rem; font-weight: bold; color: #10b981; margin-top: 5px; }
-        .record-details { font-size: 0.85rem; color: #cbd5e1; margin-top: 4px; font-style: italic; } /* TÄMÄ RIVI TUO TOISTOT NÄKYVIIN! */
+        .record-details { font-size: 0.85rem; color: #cbd5e1; margin-top: 4px; font-style: italic; }
 
         .workout-output { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .exercise-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 5px solid var(--border); }
@@ -116,48 +116,56 @@
 </div>
 
 <script>
-    // HUOM: LAITA OMA WEB APP URL-OSOITTEESI TÄHÄN!
-    const sheetsURL = "PUNAINEN_URL_TÄHÄN"; 
+    // 🔴 LAITA OMA URL-OSOITTEESI LAINAUSMERKKIEN SISÄÄN 🔴
+    const sheetsURL = "https://script.google.com/macros/s/AKfycbxsBZCDxFtozgIjCqQZMbm6cAezmrXqR-0lxkhYGoG7ifG_hANLrguB12rWb2WEysnA/exec";
 
-    function safeGetStorage(k) { try { return localStorage.getItem(k); } catch(e) { return null; } }
-    function safeSetStorage(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
+    // --- Muisti ja aputoiminnot ---
+    function safeGetStorage(key) { try { return localStorage.getItem(key); } catch(e) { return null; } }
+    function safeSetStorage(key, value) { try { localStorage.setItem(key, value); } catch(e) {} }
 
-    const rpeTable = { 1:1, 2:.955, 3:.922, 4:.892, 5:.863, 6:.837, 7:.811, 8:.786, 9:.762, 10:.739, 11:.711, 12:.683, 13:.654, 14:.626, 15:.599 };
+    const rpePercentages = { 1:1.00, 2:0.955, 3:0.922, 4:0.892, 5:0.863, 6:0.837, 7:0.811, 8:0.786, 9:0.762, 10:0.739, 11:0.711, 12:0.683, 13:0.654, 14:0.626, 15:0.599, 16:0.574, 17:0.550, 18:0.528, 19:0.507, 20:0.487 };
+
+    function getPercentage(reps, rpe) { 
+        let eReps = Math.round(reps + (10 - rpe)); 
+        if (eReps < 1) eReps = 1; if (eReps > 20) eReps = 20;
+        return rpePercentages[eReps]; 
+    }
 
     function calculateRPE() {
-        const hw = parseFloat(document.getElementById('have-weight').value) || 0;
-        const hr = parseInt(document.getElementById('have-reps').value) || 0;
-        const he = parseFloat(document.getElementById('have-rpe').value) || 0;
-        const wr = parseInt(document.getElementById('want-reps').value) || 0;
-        const we = parseFloat(document.getElementById('want-rpe').value) || 0;
-        if (hw && hr && he) {
-            const e1rm = hw / rpeTable[Math.round(hr + (10 - he))];
-            document.getElementById('e1rm-result').innerText = e1rm.toFixed(1);
-            if (wr && we) {
-                const res = e1rm * rpeTable[Math.round(wr + (10 - we))];
-                document.getElementById('want-weight-result').innerText = res.toFixed(1);
+        const hW = parseFloat(document.getElementById('have-weight').value) || 0;
+        const hR = parseFloat(document.getElementById('have-reps').value) || 0;
+        const hRPE = parseFloat(document.getElementById('have-rpe').value) || 0;
+        const wR = parseFloat(document.getElementById('want-reps').value) || 0;
+        const wRPE = parseFloat(document.getElementById('want-rpe').value) || 0;
+        if (hW && hR && hRPE) {
+            const e1rm = hW / getPercentage(hR, hRPE);
+            document.getElementById('e1rm-result').innerText = (Math.round(e1rm * 2) / 2).toFixed(1);
+            if (wR && wRPE) {
+                const wWeight = e1rm * getPercentage(wR, wRPE);
+                document.getElementById('want-weight-result').innerText = (Math.round(wWeight * 2) / 2).toFixed(1);
             }
         }
     }
 
+    // --- Liikevalikoima ---
     const exCategories = {
         squat_dl: ["Takakyykky", "Maastaveto", "Etukyykky", "Maastaveto (Sumo)", "SSB-Kyykky", "Paussikyykky"],
         press: ["Penkkipunnerrus", "Pystypunnerrus (Tanko)", "Kapea penkki", "Vinopenkki", "Käsipainopenkki", "Pystypunnerrus (KP)", "Arnold's Press"],
-        pull: ["Kulmasoutu", "Leuanveto", "Ylätalja", "Alatalja", "Rintatuettu soutu"],
-        legs_acc: ["Bulgarialainen askelkyykky", "Jalkaprässi", "Hack-kyykky", "RDL", "Takareisikoukistus"],
-        core: ["Voimapyörä", "Vatsarutistus", "Lankku"],
-        arms_shoulders: ["Ojentajat taljassa", "Ranskalainen punnerrus", "Hauiskääntö tanko", "Vipunostot"],
-        speed: ["Räjähtävä kyykky", "Nopeuspenkki", "Rinnalleveto"]
+        pull: ["Kulmasoutu", "Leuanveto", "Ylätalja", "Alatalja", "Rintatuettu soutu", "Leuanveto lisäpainoilla"],
+        legs_acc: ["Bulgarialainen askelkyykky", "Jalkaprässi", "Hack-kyykky", "RDL", "Takareisikoukistus", "Reidenojennus", "Pohkeet"],
+        core: ["Voimapyörä", "Vatsarutistus", "Lankku", "Kyljet", "Jalkojen nosto"],
+        arms_shoulders: ["Ojentajat taljassa", "Ranskalainen punnerrus", "Hauiskääntö tanko", "Vipunostot", "Takaolkapäät / Facepull"],
+        speed: ["Räjähtävä kyykky", "Nopeuspenkki", "Rinnalleveto", "Kuntopallon heitto", "Loikat", "Räjähtävä punnerrus"]
     };
 
+    // --- Ennätysten lataus (Nyt mukana toistot ja RPE!) ---
     function toggleRecords() {
         const v = document.getElementById('records-view');
         v.style.display = (v.style.display === 'block') ? 'none' : 'block';
     }
 
-    // 🔥 PÄIVITETTY HAKUFUNKTIO JOKA PIIRTÄÄ TOISTOT JA RPE:N
     function fetchRecords() {
-        if (sheetsURL === "PUNAINEN_URL_TÄHÄN") { alert("Muista asettaa URL!"); return; }
+        if (sheetsURL === "PUNAINEN_URL_TÄHÄN") { alert("Muista lisätä URL-osoitteesi koodiin!"); return; }
         const list = document.getElementById('records-list');
         list.innerHTML = "<div style='grid-column:1/-1;text-align:center;'>Ladataan pilvestä... ⏳</div>";
         
@@ -167,7 +175,6 @@
             list.innerHTML = "";
             if (Object.keys(data).length === 0) { list.innerHTML = "<div style='grid-column: 1/-1; text-align:center;'>Ei ennätyksiä löytynyt vielä.</div>"; return; }
             for (let ex in data) {
-                // Varmistetaan että toimii pilvestä tulevan uuden datarungon kanssa
                 let weight = typeof data[ex] === 'object' ? data[ex].weight : data[ex];
                 let reps = typeof data[ex] === 'object' && data[ex].reps ? data[ex].reps : "?";
                 let rpe = typeof data[ex] === 'object' && data[ex].rpe ? data[ex].rpe : "?";
@@ -179,9 +186,10 @@
                         <div class="record-details">${reps} toistoa @ RPE ${rpe}</div>
                     </div>`;
             }
-        }).catch(() => { list.innerHTML = "<div style='grid-column:1/-1;text-align:center;color:#ef4444;'>Virhe haettaessa tietoja!</div>"; });
+        }).catch(() => { list.innerHTML = "<div style='grid-column:1/-1;text-align:center;color:#ef4444;'>Virhe haettaessa tietoja! Tarkista URL.</div>"; });
     }
 
+    // --- Ohjelman logiikka ---
     function toggleWarmup(btn) {
         const box = btn.closest('.exercise-card').querySelector('.warmup-box');
         box.style.display = (box.style.display === 'block') ? 'none' : 'block';
@@ -194,6 +202,36 @@
             });
             box.innerHTML = html;
         }
+    }
+
+    function saveExerciseData(inputElement) {
+        const storageKey = inputElement.getAttribute('data-key');
+        const container = inputElement.closest('.ex-inputs');
+        const w = container.querySelector('.weight-input').value;
+        const r = container.querySelector('.rpe-input').value;
+        if (w !== "" || r !== "") { safeSetStorage(storageKey, JSON.stringify({ weight: w, rpe: r })); }
+    }
+
+    function changeExercise(selectEl) {
+        const card = selectEl.closest('.exercise-card');
+        const newExName = selectEl.value;
+        card.setAttribute('data-exname', newExName); 
+        card.querySelectorAll('.subset-container').forEach((subset, subIdx) => {
+            const storageKey = `gym_hist_${newExName}_${subIdx}`;
+            const wInput = subset.querySelector('.weight-input');
+            const rInput = subset.querySelector('.rpe-input');
+            wInput.setAttribute('data-key', storageKey);
+            rInput.setAttribute('data-key', storageKey);
+            wInput.value = ""; rInput.value = "";
+            
+            let prevText = 'Ei dataa';
+            const sdStr = safeGetStorage(storageKey);
+            if (sdStr) {
+                const sd = JSON.parse(sdStr);
+                if (sd.weight || sd.rpe) prevText = `${sd.weight || '-'} kg @ ${sd.rpe || '-'}`;
+            }
+            subset.querySelector('.prev-data').innerText = 'Viimeksi: ' + prevText;
+        });
     }
 
     function generateProgram() {
@@ -212,5 +250,71 @@
         let volMod = (days == 0 || fat >= 8) ? -1 : 0;
 
         const templates = {
-            perus: [{c:"squat_dl",d:"Takakyykky",s:4,r:"8-10",e:8},{c:"press",d:"Penkkipunnerrus",s:4,r:"8-12",e:8},{c:"pull",d:"Kulmasoutu",s:3,r:"10-12",e:8.5},{c:"core",d:"Vatsarutistus",s:3,r:"12",e:9},{c:"legs_acc",d:"Jalkaprässi",s:3,r:"12",e:8}],
-            volyymi: [{c:"squat_dl",d:"Takakyykky",s:5,r:"5",e:7.5},{c:"press",d:"Penkkipunnerrus",s:5,r:"5",e:7.5},{c:"pull
+            perus: [{c:"squat_dl",d:"Takakyykky",s:4,r:"8-10",e:8},{c:"press",d:"Penkkipunnerrus",s:4,r:"8-12",e:8},{c:"pull",d:"Kulmasoutu",s:3,r:"10-12",e:8.5},{c:"core",d:"Vatsarutistus",s:3,r:"12",e:9},{c:"legs_acc",d:"Jalkaprässi",s:3,r:"12",e:8},{c:"arms_shoulders",d:"Ojentajat taljassa",s:3,r:"15",e:9}],
+            volyymi: [{c:"squat_dl",d:"Takakyykky",s:5,r:"5",e:7.5},{c:"press",d:"Penkkipunnerrus",s:5,r:"5",e:7.5},{c:"pull",d:"Kulmasoutu",s:5,r:"5",e:8},{c:"legs_acc",d:"Bulgarialainen askelkyykky",s:3,r:"10",e:8},{c:"arms_shoulders",d:"Ojentajat taljassa",s:3,r:"10",e:8.5}],
+            voimanosto: [{c:"squat_dl",d:"Takakyykky",sc:[{s:1,r:2,e:8,l:"Top Set"},{s:1,r:4,e:7,l:"Back-off 1"},{s:1,r:6,e:6,l:"Back-off 2"}]},{c:"press",d:"Penkkipunnerrus",sc:[{s:1,r:1,e:8,l:"Top Set"},{s:3,r:5,e:7.5,l:"Volyymi"}]},{c:"pull",d:"Kulmasoutu",s:4,r:8,e:8.5},{c:"legs_acc",d:"Bulgarialainen askelkyykky",s:3,r:10,e:8},{c:"press",d:"Pystypunnerrus (Tanko)",s:3,r:8,e:8}],
+            nopeus: [{c:"speed",d:"Räjähtävä kyykky",s:6,r:3,e:6.5},{c:"speed",d:"Nopeuspenkki",s:6,r:3,e:6.5},{c:"speed",d:"Rinnalleveto",s:5,r:3,e:7}],
+            deload: [{c:"squat_dl",d:"Takakyykky",s:2,r:5,e:5},{c:"press",d:"Penkkipunnerrus",s:2,r:5,e:5},{c:"pull",d:"Leuanveto",s:2,r:8,e:5},{c:"core",d:"Lankku",s:2,r:"30s",e:5}],
+            vuoro: [{c:"press",d:"Penkkipunnerrus",s:4,r:"8-10",e:8,prefix:"1A. "},{c:"pull",d:"Kulmasoutu",s:4,r:"8-10",e:8,prefix:"1B. "},{c:"squat_dl",d:"Takakyykky",s:3,r:"10-12",e:8,prefix:"2A. "},{c:"legs_acc",d:"Bulgarialainen askelkyykky",s:3,r:"10-12",e:8,prefix:"2B. "}]
+        };
+
+        const plan = (templates[goal] || templates.perus).slice(0, count);
+        plan.forEach((ex, i) => {
+            let card = `<div class="exercise-card" data-exname="${ex.d}">
+                <div class="ex-header"><div class="ex-name">
+                <span>${ex.prefix || (i+1)+'. '}</span><select class="ex-selector" onchange="changeExercise(this)">${exCategories[ex.c].map(n => `<option ${n==ex.d?'selected':''}>${n}</option>`).join('')}</select>
+                <span class="warmup-btn" onclick="toggleWarmup(this)">🔥</span></div></div><div class="warmup-box"></div>`;
+            
+            let schemes = ex.sc || [{s:ex.s,r:ex.r,e:ex.e}];
+            schemes.forEach((sub, si) => {
+                let fe = sub.e + rpeMod; let fs = sub.s + volMod; if(fs<1) fs=1;
+                let k = `hist_${ex.d}_${si}`; let sd = JSON.parse(safeGetStorage(k) || '{}');
+                
+                let restText = "2-3 min"; 
+                let repCount = parseInt(sub.r.toString().split('-')[0]) || 8;
+                if (goal === "nopeus" || goal === "vuoro") { restText = "1-1.5 min"; } 
+                else if (goal === "deload") { restText = "1.5-2 min"; } 
+                else {
+                    if (fe >= 8.5 && repCount <= 5) restText = "3-5 min";
+                    else if (fe >= 8 && repCount <= 8) restText = "2-3 min";
+                    else if (repCount >= 10) restText = "1.5-2 min";
+                }
+
+                card += `<div class="subset-container"><div class="subset-header">
+                    <div class="subset-target" data-target="${fs}x${sub.r}@${fe}">${sub.l?sub.l+' | ':''}<strong>${fs}x${sub.r}</strong> <span>@${fe}</span> <span class="rest-badge" title="Taukosuositus">⏳ ${restText}</span></div>
+                    <div class="prev-data">Viimeksi: ${sd.weight?sd.weight+'kg @'+sd.rpe:'-'}</div></div>
+                    <div class="ex-inputs">
+                    <div class="input-wrapper"><label>Kg</label><input type="number" step="0.5" class="data-input weight-input" data-key="${k}" onchange="saveExerciseData(this)"></div>
+                    <div class="input-wrapper"><label>RPE</label><input type="number" step="0.5" class="data-input rpe-input" data-key="${k}" onchange="saveExerciseData(this)"></div>
+                    </div></div>`;
+            });
+            list.innerHTML += card + `</div>`;
+        });
+    }
+
+    function saveToGoogleSheets() {
+        const data = [];
+        document.querySelectorAll('.exercise-card').forEach(c => {
+            const name = c.querySelector('.ex-selector').value;
+            c.querySelectorAll('.subset-container').forEach(s => {
+                const w = s.querySelector('.weight-input').value;
+                const r = s.querySelector('.rpe-input').value;
+                if(w || r) {
+                    safeSetStorage(s.querySelector('.weight-input').getAttribute('data-key'), JSON.stringify({weight:w, rpe:r}));
+                    data.push({ exercise: name, target: s.querySelector('.subset-target').getAttribute('data-target'), weight: w || "-", rpe: r || "-" });
+                }
+            });
+        });
+        if(data.length === 0) { alert("Kirjaa tulokset ensin!"); return; }
+        const btn = document.getElementById('save-cloud-btn');
+        btn.disabled = true; btn.innerText = "⏳ Tallennetaan...";
+        fetch(sheetsURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) }).then(() => {
+            btn.innerText = "✅ Valmis!";
+            setTimeout(() => { btn.disabled=false; btn.innerText="☁️ Tallenna Sheetsiin"; }, 2000);
+        });
+    }
+
+    window.onload = calculateRPE;
+</script>
+</body>
+</html>
