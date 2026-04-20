@@ -68,7 +68,7 @@
         .pair-3 { border-left-color: var(--pair-3); } .pair-4 { border-left-color: var(--pair-4); }
         .superset-badge { font-size: 0.7rem; background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; font-weight: bold; }
 
-        #save-cloud-btn { background-color: #10b981; margin-top: 20px; font-size: 1.2rem; padding: 20px; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3); display: none; }
+        #save-cloud-btn { background-color: #10b981; margin-top: 20px; font-size: 1.2rem; padding: 20px; box-shadow: 0 4px 69 rgba(16, 185, 129, 0.3); display: none; }
         #save-cloud-btn:hover { background-color: #059669; }
 
         @media (max-width: 900px) { .container, .calc-grid { grid-template-columns: 1fr; } }
@@ -102,10 +102,12 @@
         <label style="font-weight:bold; font-size:0.9rem;">Harjoituksen Tavoite</label>
         <select id="train-goal">
             <option value="perus">Perusvoima (8-12 toistoa)</option>
+            <option value="volyymi">5x5 Volyymi (Voimarakennus)</option>
             <option value="maksimi">Maksimivoima (1-5 toistoa)</option>
-            <option value="voimanosto">Voimanosto (RTS / Top set + Back-offs)</option>
+            <option value="voimanosto">Voimanosto (RTS / Top set)</option>
             <option value="vuoro">Vuorosarjat / Antagonisti</option>
-            <option value="nopeus">Nopeusvoima (2-4 räjähtävää toistoa)</option>
+            <option value="nopeus">Nopeusvoima (Räjähtävä)</option>
+            <option value="deload">Deload (Kevyt / Ylläpitävä)</option>
         </select>
         
         <label style="font-weight:bold; font-size:0.9rem; margin-top:5px; display:block;">Liikkeiden määrä (3 - 8)</label>
@@ -153,7 +155,6 @@
         const hRPE = parseFloat(document.getElementById('have-rpe').value) || 0;
         const wR = parseFloat(document.getElementById('want-reps').value) || 0;
         const wRPE = parseFloat(document.getElementById('want-rpe').value) || 0;
-
         if (hW && hR && hRPE) {
             const e1rm = hW / getPercentage(hR, hRPE);
             document.getElementById('e1rm-result').innerText = (Math.round(e1rm * 2) / 2).toFixed(1);
@@ -188,10 +189,7 @@
             const round = (w) => Math.round(w / 2.5) * 2.5;
             let html = `<div class="warmup-title">Lähestymissarjat (Tavoite: ${target}kg) <span onclick="this.parentElement.parentElement.style.display='none'" style="cursor:pointer">✖</span></div>`;
             const steps = [{ p: 0, r: "10-15", label: "Tanko", fixed: 20 }, { p: 0.5, r: "8", label: "50%" }, { p: 0.7, r: "5", label: "70%" }, { p: 0.85, r: "3", label: "85%" }, { p: 0.95, r: "1", label: "Tuntuma" }];
-            steps.forEach(s => {
-                let w = s.fixed ? s.fixed : round(target * s.p);
-                html += `<div class="warmup-step"><span>${s.label}</span> <span><strong>${w} kg</strong> x ${s.r}</span></div>`;
-            });
+            steps.forEach(s => { let w = s.fixed ? s.fixed : round(target * s.p); html += `<div class="warmup-step"><span>${s.label}</span> <span><strong>${w} kg</strong> x ${s.r}</span></div>`; });
             warmupBox.innerHTML = html;
         }
     }
@@ -201,9 +199,7 @@
         const container = inputElement.closest('.ex-inputs');
         const w = container.querySelector('.weight-input').value;
         const r = container.querySelector('.rpe-input').value;
-        if (w !== "" || r !== "") {
-            safeSetStorage(storageKey, JSON.stringify({ weight: w, rpe: r }));
-        }
+        if (w !== "" || r !== "") { safeSetStorage(storageKey, JSON.stringify({ weight: w, rpe: r })); }
     }
 
     function changeExercise(selectEl) {
@@ -241,29 +237,14 @@
         let rpeMod = (daysSince === 0) ? -1 : (fatigue >= 8 ? -1.5 : (fatigue >= 6 ? -0.5 : 0));
 
         const templates = {
-            perus: [
-                { cat: "squat_dl", def: "Takakyykky", sets: 4, reps: "8-10", rpe: 8 }, 
-                { cat: "press", def: "Penkkipunnerrus", sets: 4, reps: "8-12", rpe: 8 }, 
-                { cat: "pull", def: "Kulmasoutu", sets: 3, reps: "10-12", rpe: 8.5 }, 
-                { cat: "core", def: "Vatsarutistus", sets: 3, reps: "12-15", rpe: 9 }, 
-                { cat: "legs_acc", def: "Jalkaprässi", sets: 3, reps: "10-15", rpe: 8.5 }, 
-                { cat: "arms_shoulders", def: "Ojentajat taljassa", sets: 3, reps: "12-15", rpe: 9 }, 
-                { cat: "arms_shoulders", def: "Hauiskääntö tanko", sets: 3, reps: "12-15", rpe: 9 }
-            ],
-            // 🔥 Voimanosto päivitetty! 3 ekaa on ydinliikkeet, 4. liike pakotettu Bulgarialainen askelkyykky.
-            voimanosto: [
-                { cat: "squat_dl", def: "Takakyykky", scheme: [{ sets: 1, reps: "2", rpe: 8, label: "Top Set" }, { sets: 1, reps: "4", rpe: 7, label: "Back-off 1" }, { sets: 1, reps: "6", rpe: 6, label: "Back-off 2" }] }, 
-                { cat: "press", def: "Penkkipunnerrus", scheme: [{ sets: 1, reps: "1", rpe: 8, label: "Top Set" }, { sets: 3, reps: "5", rpe: 7.5, label: "Volyymi" }] }, 
-                { cat: "pull", def: "Kulmasoutu", sets: 4, reps: "6-8", rpe: 8.5 }, 
-                { cat: "legs_acc", def: "Bulgarialainen askelkyykky", sets: 3, reps: "8-10", rpe: 8 },
-                { cat: "press", def: "Pystypunnerrus (Tanko)", sets: 3, reps: "6-8", rpe: 8 },
-                { cat: "core", def: "Voimapyörä", sets: 3, reps: "8-10", rpe: 8 },
-                { cat: "arms_shoulders", def: "Ranskalainen punnerrus", sets: 3, reps: "8-12", rpe: 8 },
-                { cat: "pull", def: "Ylätalja", sets: 3, reps: "10-15", rpe: 8 }
-            ],
+            perus: [{ cat: "squat_dl", def: "Takakyykky", sets: 4, reps: "8-10", rpe: 8 }, { cat: "press", def: "Penkkipunnerrus", sets: 4, reps: "8-12", rpe: 8 }, { cat: "pull", def: "Kulmasoutu", sets: 3, reps: "10-12", rpe: 8.5 }, { cat: "core", def: "Vatsarutistus", sets: 3, reps: "12-15", rpe: 9 }, { cat: "legs_acc", def: "Jalkaprässi", sets: 3, reps: "10-15", rpe: 8.5 }],
+            volyymi: [{ cat: "squat_dl", def: "Takakyykky", sets: 5, reps: "5", rpe: 7.5 }, { cat: "press", def: "Penkkipunnerrus", sets: 5, reps: "5", rpe: 7.5 }, { cat: "pull", def: "Kulmasoutu", sets: 4, reps: "8", rpe: 8 }, { cat: "legs_acc", def: "Bulgarialainen askelkyykky", sets: 3, reps: "10", rpe: 8 }, { cat: "arms_shoulders", def: "Ojentajat taljassa", sets: 3, reps: "10", rpe: 8.5 }],
+            voimanosto: [{ cat: "squat_dl", def: "Takakyykky", scheme: [{ sets: 1, reps: "2", rpe: 8, label: "Top Set" }, { sets: 1, reps: "4", rpe: 7, label: "Back-off 1" }, { sets: 1, reps: "6", rpe: 6, label: "Back-off 2" }] }, { cat: "press", def: "Penkkipunnerrus", scheme: [{ sets: 1, reps: "1", rpe: 8, label: "Top Set" }, { sets: 3, reps: "5", rpe: 7.5, label: "Volyymi" }] }, { cat: "pull", def: "Kulmasoutu", sets: 4, reps: "6-8", rpe: 8.5 }, { cat: "legs_acc", def: "Bulgarialainen askelkyykky", sets: 3, reps: "8-10", rpe: 8 }, { cat: "press", def: "Pystypunnerrus (Tanko)", sets: 3, reps: "6-8", rpe: 8 }],
             maksimi: [{ cat: "squat_dl", def: "Maastaveto", sets: 5, reps: "2-4", rpe: 9 }, { cat: "press", def: "Penkkipunnerrus", sets: 5, reps: "2-4", rpe: 9 }, { cat: "pull", def: "Kulmasoutu", sets: 4, reps: "4-6", rpe: 8.5 }],
             vuoro: [{ cat: "press", def: "Penkkipunnerrus", sets: 4, reps: "8-10", rpe: 8, pair: 1, prefix: "1A. " }, { cat: "pull", def: "Kulmasoutu", sets: 4, reps: "8-10", rpe: 8, pair: 1, prefix: "1B. " }],
-            nopeus: [{ cat: "speed", def: "Räjähtävä kyykky", sets: 6, reps: "2-3", rpe: 6.5 }]
+            nopeus: [{ cat: "speed", def: "Räjähtävä kyykky", sets: 6, reps: "2-3", rpe: 6.5 }],
+            // 🔥 Deload-ohjelma: Kevyttä ylläpitävää, matala RPE.
+            deload: [{ cat: "squat_dl", def: "Takakyykky", sets: 2, reps: "5", rpe: 5 }, { cat: "press", def: "Penkkipunnerrus", sets: 2, reps: "5", rpe: 5 }, { cat: "pull", def: "Leuanveto", sets: 2, reps: "8", rpe: 5 }, { cat: "legs_acc", def: "Jalkaprässi", sets: 2, reps: "10", rpe: 5 }, { cat: "core", def: "Lankku", sets: 2, reps: "30s", rpe: 5 }]
         };
 
         let plan = (templates[goal] || templates.perus).slice(0, exCount);
@@ -277,14 +258,12 @@
                     </select>
                     <span class="warmup-btn" onclick="toggleWarmup(this)">🔥</span>
                 </div></div>`;
-
             let schemes = exercise.scheme || [{ sets: exercise.sets, reps: exercise.reps, rpe: exercise.rpe }];
             schemes.forEach((sub, sIdx) => {
                 const storageKey = `gym_hist_${defEx}_${sIdx}`;
                 let prevText = 'Ei dataa';
                 const sdStr = safeGetStorage(storageKey);
                 if (sdStr) { const sd = JSON.parse(sdStr); if(sd.weight) prevText = `${sd.weight} kg @ ${sd.rpe}`; }
-
                 cardHtml += `<div class="subset-container">
                     <div class="subset-header">
                         <div class="subset-target" data-target="${sub.sets+volMod}x${sub.reps}@${sub.rpe+rpeMod}">${sub.label?sub.label+' | ':''}<strong>${sub.sets+volMod}x${sub.reps}</strong> <span>@${sub.rpe+rpeMod}</span></div>
@@ -301,40 +280,27 @@
     }
 
     const sheetsURL = "https://script.google.com/macros/s/AKfycbxJcBuviA0q1ERozPtaa7I03lVxPt1egGjv71PGqlOA83KWA7ez_KK0kdBVxhQBfDX5/exec"; 
-
     function saveToGoogleSheets() {
         const cards = document.querySelectorAll('.exercise-card');
         let workoutData = [];
-
         cards.forEach(card => {
             const exName = card.getAttribute('data-exname');
             card.querySelectorAll('.subset-container').forEach(subset => {
                 const w = subset.querySelector('.weight-input').value;
                 const r = subset.querySelector('.rpe-input').value;
                 const storageKey = subset.querySelector('.weight-input').getAttribute('data-key');
-
                 if (w !== "" || r !== "") {
                     safeSetStorage(storageKey, JSON.stringify({ weight: w, rpe: r }));
-                    workoutData.push({
-                        exercise: exName,
-                        target: subset.querySelector('.subset-target').getAttribute('data-target'),
-                        weight: w || "-",
-                        rpe: r || "-"
-                    });
+                    workoutData.push({ exercise: exName, target: subset.querySelector('.subset-target').getAttribute('data-target'), weight: w || "-", rpe: r || "-" });
                 }
             });
         });
-
         if(workoutData.length === 0) { alert("Kirjaa tulokset ensin!"); return; }
-
         const btn = document.getElementById('save-cloud-btn');
         btn.innerText = "⏳ Tallennetaan..."; btn.disabled = true;
-
         fetch(sheetsURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(workoutData) })
-        .then(() => {
-            btn.innerText = "✅ Valmis!";
-            setTimeout(() => { btn.innerText = "☁️ Tallenna Sheetsiin"; btn.disabled = false; }, 2000);
-        }).catch(() => { alert("Virhe!"); btn.disabled = false; });
+        .then(() => { btn.innerText = "✅ Valmis!"; setTimeout(() => { btn.innerText = "☁️ Tallenna Sheetsiin"; btn.disabled = false; }, 2000); })
+        .catch(() => { alert("Virhe!"); btn.disabled = false; });
     }
     window.onload = calculateRPE;
 </script>
