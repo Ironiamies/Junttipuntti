@@ -34,6 +34,7 @@
         .ex-header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px; }
         .ex-name { font-weight: 800; font-size: 1.1rem; color: var(--accent); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .ex-selector { padding: 6px; border: 2px solid var(--border); border-radius: 6px; font-size: 1rem; font-weight: 700; color: var(--accent); background: #fff; cursor: pointer; max-width: 220px; margin: 0; }
+        optgroup { font-weight: bold; color: var(--calc-bg); }
         
         .warmup-btn { cursor: pointer; font-size: 1.2rem; filter: grayscale(1); transition: filter 0.2s; }
         .warmup-btn:hover { filter: grayscale(0); }
@@ -116,8 +117,8 @@
 </div>
 
 <script>
-    // 🔴 LAITA OMA URL-OSOITTEESI LAINAUSMERKKIEN SISÄÄN 🔴
-    const sheetsURL = "https://script.google.com/macros/s/AKfycbxsBZCDxFtozgIjCqQZMbm6cAezmrXqR-0lxkhYGoG7ifG_hANLrguB12rWb2WEysnA/exec";
+    // 🔴 LAITA OMA URL-OSOITTEESI TÄHÄN 🔴
+    const sheetsURL = "PUNAINEN_URL_TÄHÄN";
 
     // --- Muisti ja aputoiminnot ---
     function safeGetStorage(key) { try { return localStorage.getItem(key); } catch(e) { return null; } }
@@ -147,18 +148,21 @@
         }
     }
 
-    // --- Liikevalikoima ---
+    // 🔥 PÄIVITETTY LIIKEVALIKOIMA (Lämmittelykategoria lisätty!) 🔥
     const exCategories = {
+        warmup: ["Landmine Kyykky", "Landmine 1-k. Rive + Punnerrus", "Landmine Askelkyykky taakse", "Landmine Sivutaivutus"],
         squat_dl: ["Takakyykky", "Maastaveto", "Etukyykky", "Maastaveto (Sumo)", "SSB-Kyykky", "Paussikyykky"],
         press: ["Penkkipunnerrus", "Pystypunnerrus (Tanko)", "Kapea penkki", "Vinopenkki", "Käsipainopenkki", "Pystypunnerrus (KP)", "Arnold's Press"],
         pull: ["Kulmasoutu", "Leuanveto", "Ylätalja", "Alatalja", "Rintatuettu soutu", "Leuanveto lisäpainoilla"],
         legs_acc: ["Bulgarialainen askelkyykky", "Jalkaprässi", "Hack-kyykky", "RDL", "Takareisikoukistus", "Reidenojennus", "Pohkeet"],
-        core: ["Voimapyörä", "Vatsarutistus", "Lankku", "Kyljet", "Jalkojen nosto"],
+        core: ["Voimapyörä", "Vatsarutistus", "Lankku", "Kyljet", "Jalkojen nosto", "Landmine 180"],
         arms_shoulders: ["Ojentajat taljassa", "Ranskalainen punnerrus", "Hauiskääntö tanko", "Vipunostot", "Takaolkapäät / Facepull"],
         speed: ["Räjähtävä kyykky", "Nopeuspenkki", "Rinnalleveto", "Kuntopallon heitto", "Loikat", "Räjähtävä punnerrus"]
     };
+    
+    // Nimet alasvetovalikon otsikoille
+    const catNames = { warmup: "🔥 LÄMMITTELY / HERÄTTELY", squat_dl: "KYYKYT & VEDOT", press: "PUNNERRUKSET", pull: "VEDOT", legs_acc: "JALKA-APULIIKKEET", core: "KESKIVARTALO", arms_shoulders: "KÄDET & OLKAPÄÄT", speed: "NOPEUS" };
 
-    // --- Ennätysten lataus (Nyt mukana toistot ja RPE!) ---
     function toggleRecords() {
         const v = document.getElementById('records-view');
         v.style.display = (v.style.display === 'block') ? 'none' : 'block';
@@ -189,7 +193,6 @@
         }).catch(() => { list.innerHTML = "<div style='grid-column:1/-1;text-align:center;color:#ef4444;'>Virhe haettaessa tietoja! Tarkista URL.</div>"; });
     }
 
-    // --- Ohjelman logiikka ---
     function toggleWarmup(btn) {
         const box = btn.closest('.exercise-card').querySelector('.warmup-box');
         box.style.display = (box.style.display === 'block') ? 'none' : 'block';
@@ -260,9 +263,21 @@
 
         const plan = (templates[goal] || templates.perus).slice(0, count);
         plan.forEach((ex, i) => {
+            
+            // 🔥 UUSI VALIKKOLOGIIKKA: Rakentaa kaikki kategoriat alasvetovalikkoon!
+            let optionsHtml = '';
+            for (let cat in exCategories) {
+                optionsHtml += `<optgroup label="${catNames[cat]}">`;
+                optionsHtml += exCategories[cat].map(n => `<option ${n==ex.d?'selected':''}>${n}</option>`).join('');
+                optionsHtml += `</optgroup>`;
+            }
+
             let card = `<div class="exercise-card" data-exname="${ex.d}">
                 <div class="ex-header"><div class="ex-name">
-                <span>${ex.prefix || (i+1)+'. '}</span><select class="ex-selector" onchange="changeExercise(this)">${exCategories[ex.c].map(n => `<option ${n==ex.d?'selected':''}>${n}</option>`).join('')}</select>
+                <span>${ex.prefix || (i+1)+'. '}</span>
+                <select class="ex-selector" onchange="changeExercise(this)">
+                    ${optionsHtml}
+                </select>
                 <span class="warmup-btn" onclick="toggleWarmup(this)">🔥</span></div></div><div class="warmup-box"></div>`;
             
             let schemes = ex.sc || [{s:ex.s,r:ex.r,e:ex.e}];
