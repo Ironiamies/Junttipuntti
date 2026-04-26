@@ -46,7 +46,7 @@
         .subset-header { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 8px; align-items: center;}
         .subset-target { background: #fff; padding: 4px 8px; border-radius: 4px; border: 1px solid #e2e8f0; font-weight: 600;}
         .rest-badge { font-size: 0.75rem; color: #475569; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
-        .prev-data { font-size: 0.8rem; color: #64748b; font-style: italic; }
+        .prev-data { font-size: 0.8rem; color: #64748b; font-style: italic; text-align: right;}
         
         .ex-inputs { display: flex; gap: 15px; }
         .input-wrapper { flex: 1; display: flex; flex-direction: column; gap: 5px; }
@@ -117,7 +117,7 @@
 </div>
 
 <script>
-    // 🔴 LAITA OMA URL-OSOITTEESI TÄHÄN 🔴
+    // 🔴 LAITA OMA URL-OSOITTEESI TÄHÄN (Jätä lainausmerkit " " paikoilleen!)
     const sheetsURL = "https://script.google.com/macros/s/AKfycbyXWpDxCQOBGFE-PSPf8wT_6RtZTZMdMq90YmOWon7eSDAmCMXR2CkEgLwWZ45IUq-N/exec";
 
     // --- Muisti ja aputoiminnot ---
@@ -148,19 +148,17 @@
         }
     }
 
-    // 🔥 PÄIVITETTY LIIKEVALIKOIMA (Lämmittelykategoria lisätty!) 🔥
     const exCategories = {
         warmup: ["Landmine Kyykky", "Landmine 1-k. Rive + Punnerrus", "Landmine Askelkyykky taakse", "Landmine Sivutaivutus"],
         squat_dl: ["Takakyykky", "Maastaveto", "Etukyykky", "Maastaveto (Sumo)", "SSB-Kyykky", "Paussikyykky"],
         press: ["Penkkipunnerrus", "Pystypunnerrus (Tanko)", "Kapea penkki", "Vinopenkki", "Käsipainopenkki", "Pystypunnerrus (KP)", "Arnold's Press"],
-        pull: ["Kulmasoutu", "Leuanveto", "Ylätalja", "Alatalja", "Rintatuettu soutu", "Leuanveto lisäpainoilla"],
+        pull: ["Kulmasoutu", "T-Tanko kulmasoutu", "Leuanveto", "Ylätalja", "Alatalja", "Rintatuettu soutu", "Leuanveto lisäpainoilla"],
         legs_acc: ["Bulgarialainen askelkyykky", "Jalkaprässi", "Hack-kyykky", "RDL", "Takareisikoukistus", "Reidenojennus", "Pohkeet"],
         core: ["Voimapyörä", "Vatsarutistus", "Lankku", "Kyljet", "Jalkojen nosto", "Landmine 180"],
         arms_shoulders: ["Ojentajat taljassa", "Ranskalainen punnerrus", "Hauiskääntö tanko", "Vipunostot", "Takaolkapäät / Facepull"],
         speed: ["Räjähtävä kyykky", "Nopeuspenkki", "Rinnalleveto", "Kuntopallon heitto", "Loikat", "Räjähtävä punnerrus"]
     };
     
-    // Nimet alasvetovalikon otsikoille
     const catNames = { warmup: "🔥 LÄMMITTELY / HERÄTTELY", squat_dl: "KYYKYT & VEDOT", press: "PUNNERRUKSET", pull: "VEDOT", legs_acc: "JALKA-APULIIKKEET", core: "KESKIVARTALO", arms_shoulders: "KÄDET & OLKAPÄÄT", speed: "NOPEUS" };
 
     function toggleRecords() {
@@ -169,7 +167,7 @@
     }
 
     function fetchRecords() {
-        if (sheetsURL === "PUNAINEN_URL_TÄHÄN") { alert("Muista lisätä URL-osoitteesi koodiin!"); return; }
+        if (sheetsURL === "https://script.google.com/macros/s/SINUN_OMAN_LINKKISI_LOPPUOSA/exec") { alert("Muista lisätä oma URL-osoitteesi koodiin!"); return; }
         const list = document.getElementById('records-list');
         list.innerHTML = "<div style='grid-column:1/-1;text-align:center;'>Ladataan pilvestä... ⏳</div>";
         
@@ -264,7 +262,6 @@
         const plan = (templates[goal] || templates.perus).slice(0, count);
         plan.forEach((ex, i) => {
             
-            // 🔥 UUSI VALIKKOLOGIIKKA: Rakentaa kaikki kategoriat alasvetovalikkoon!
             let optionsHtml = '';
             for (let cat in exCategories) {
                 optionsHtml += `<optgroup label="${catNames[cat]}">`;
@@ -283,7 +280,8 @@
             let schemes = ex.sc || [{s:ex.s,r:ex.r,e:ex.e}];
             schemes.forEach((sub, si) => {
                 let fe = sub.e + rpeMod; let fs = sub.s + volMod; if(fs<1) fs=1;
-                let k = `hist_${ex.d}_${si}`; let sd = JSON.parse(safeGetStorage(k) || '{}');
+                let k = `gym_hist_${ex.d}_${si}`;
+                let sd = JSON.parse(safeGetStorage(k) || '{}');
                 
                 let restText = "2-3 min"; 
                 let repCount = parseInt(sub.r.toString().split('-')[0]) || 8;
