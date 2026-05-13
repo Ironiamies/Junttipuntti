@@ -149,15 +149,16 @@
         }
     }
 
+    // 🔥 PÄIVITETTY LIIKEVALIKOIMA (Kelkkaliikkeet lisätty!) 🔥
     const exCategories = {
         warmup: ["Landmine Kyykky", "Landmine 1-k. Rive + Punnerrus", "Landmine Askelkyykky taakse", "Landmine Sivutaivutus"],
-        squat_dl: ["Takakyykky", "Maastaveto", "Etukyykky", "Maastaveto (Sumo)", "SSB-Kyykky", "Paussikyykky"],
+        squat_dl: ["Takakyykky", "Maastaveto", "Etukyykky", "Maastaveto (Sumo)", "SSB-Kyykky", "Paussikyykky", "Landmine Kyykky", "Raskas kelkkatyöntö"],
         press: ["Penkkipunnerrus", "Pystypunnerrus (Tanko)", "Kapea penkki", "Vinopenkki", "Käsipainopenkki", "Pystypunnerrus (KP)", "Arnold's Press"],
         pull: ["Kulmasoutu", "T-Tanko kulmasoutu", "Leuanveto", "Ylätalja", "Alatalja", "Rintatuettu soutu", "Leuanveto lisäpainoilla"],
-        legs_acc: ["Bulgarialainen askelkyykky", "Jalkaprässi", "Hack-kyykky", "RDL", "Takareisikoukistus", "Reidenojennus", "Pohkeet"],
+        legs_acc: ["Bulgarialainen askelkyykky", "Jalkaprässi", "Hack-kyykky", "RDL", "Takareisikoukistus", "Reidenojennus", "Pohkeet", "Landmine Askelkyykky taakse", "Kelkan veto taaksepäin"],
         core: ["Voimapyörä", "Vatsarutistus", "Lankku", "Kyljet", "Jalkojen nosto", "Landmine 180"],
         arms_shoulders: ["Ojentajat taljassa", "Ranskalainen punnerrus", "Hauiskääntö tanko", "Vipunostot", "Takaolkapäät / Facepull"],
-        speed: ["Räjähtävä kyykky", "Nopeuspenkki", "Rinnalleveto", "Push Press", "Loikat", "Kuntopallon heitto", "Kahvakuulaheilautus", "Räjähtävä punnerrus"]
+        speed: ["Räjähtävä kyykky", "Nopeuspenkki", "Rinnalleveto", "Push Press", "Loikat", "Kuntopallon heitto", "Kahvakuulaheilautus", "Räjähtävä punnerrus", "Kelkkasprintti"]
     };
     
     const catNames = { warmup: "🔥 LÄMMITTELY / HERÄTTELY", squat_dl: "KYYKYT & VEDOT", press: "PUNNERRUKSET", pull: "VEDOT", legs_acc: "JALKA-APULIIKKEET", core: "KESKIVARTALO", arms_shoulders: "KÄDET & OLKAPÄÄT", speed: "NOPEUS" };
@@ -168,7 +169,7 @@
     }
 
     function fetchRecords() {
-        if (sheetsURL === "https://script.google.com/macros/s/SINUN_OMAN_LINKKISI_LOPPUOSA/exec") { alert("Muista lisätä oma URL-osoitteesi koodiin!"); return; }
+        if (sheetsURL.includes("SINUN_OMAN_LINKKISI")) { alert("Muista lisätä oma URL-osoitteesi koodiin!"); return; }
         const list = document.getElementById('records-list');
         list.innerHTML = "<div style='grid-column:1/-1;text-align:center;'>Ladataan pilvestä... ⏳</div>";
         
@@ -255,17 +256,7 @@
             perus: [{c:"squat_dl",d:"Takakyykky",s:4,r:"8-10",e:8},{c:"press",d:"Penkkipunnerrus",s:4,r:"8-12",e:8},{c:"pull",d:"Kulmasoutu",s:3,r:"10-12",e:8.5},{c:"core",d:"Vatsarutistus",s:3,r:"12",e:9},{c:"legs_acc",d:"Jalkaprässi",s:3,r:"12",e:8},{c:"arms_shoulders",d:"Ojentajat taljassa",s:3,r:"15",e:9}],
             volyymi: [{c:"squat_dl",d:"Takakyykky",s:5,r:"5",e:7.5},{c:"press",d:"Penkkipunnerrus",s:5,r:"5",e:7.5},{c:"pull",d:"Kulmasoutu",s:5,r:"5",e:8},{c:"legs_acc",d:"Bulgarialainen askelkyykky",s:3,r:"10",e:8},{c:"arms_shoulders",d:"Ojentajat taljassa",s:3,r:"10",e:8.5}],
             voimanosto: [{c:"squat_dl",d:"Takakyykky",sc:[{s:1,r:2,e:8,l:"Top Set"},{s:1,r:4,e:7,l:"Back-off 1"},{s:1,r:6,e:6,l:"Back-off 2"}]},{c:"press",d:"Penkkipunnerrus",sc:[{s:1,r:1,e:8,l:"Top Set"},{s:3,r:5,e:7.5,l:"Volyymi"}]},{c:"pull",d:"Kulmasoutu",s:4,r:8,e:8.5},{c:"legs_acc",d:"Bulgarialainen askelkyykky",s:3,r:10,e:8},{c:"press",d:"Pystypunnerrus (Tanko)",s:3,r:8,e:8}],
-            nopeus: [
-                {c:"speed",d:"Räjähtävä kyykky",s:6,r:3,e:6.5},
-                {c:"speed",d:"Nopeuspenkki",s:6,r:3,e:6.5},
-                {c:"speed",d:"Rinnalleveto",s:5,r:3,e:7},
-                {c:"speed",d:"Push Press",s:4,r:4,e:7},
-                {c:"speed",d:"Loikat",s:4,r:5,e:6},
-                {c:"speed",d:"Kuntopallon heitto",s:4,r:5,e:6},
-                {c:"speed",d:"Kahvakuulaheilautus",s:4,r:10,e:7},
-                {c:"speed",d:"Räjähtävä punnerrus",s:4,r:5,e:6.5}
-            ],
-            // 🔥 Uusi hybridi-malli: Nopeus jalat + Maksimi yläkroppa
+            nopeus: [{c:"speed",d:"Räjähtävä kyykky",s:6,r:3,e:6.5},{c:"speed",d:"Nopeuspenkki",s:6,r:3,e:6.5},{c:"speed",d:"Rinnalleveto",s:5,r:3,e:7},{c:"speed",d:"Push Press",s:4,r:4,e:7},{c:"speed",d:"Loikat",s:4,r:5,e:6},{c:"speed",d:"Kuntopallon heitto",s:4,r:5,e:6},{c:"speed",d:"Kahvakuulaheilautus",s:4,r:10,e:7},{c:"speed",d:"Kelkkasprintti",s:6,r:1,e:6}],
             hybridi: [
                 {c:"speed", d:"Räjähtävä kyykky", s:5, r:3, e:6.5},
                 {c:"press", d:"Penkkipunnerrus", s:4, r:4, e:8.5},
